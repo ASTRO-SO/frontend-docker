@@ -62,21 +62,21 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
     svg.innerHTML = '';
 
     // Create defs for gradients
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const defs = document.createElementNS('https://www.w3.org/2000/svg', 'defs');
     
     // Create radial gradient for background
-    const bgGradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+    const bgGradient = document.createElementNS('https://www.w3.org/2000/svg', 'radialGradient');
     bgGradient.setAttribute('id', 'bgGradient');
     bgGradient.setAttribute('cx', '50%');
     bgGradient.setAttribute('cy', '50%');
     bgGradient.setAttribute('r', '50%');
     
-    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    const stop1 = document.createElementNS('https://www.w3.org/2000/svg', 'stop');
     stop1.setAttribute('offset', '0%');
     stop1.setAttribute('stop-color', '#1a1a2e');
     stop1.setAttribute('stop-opacity', '0.9');
     
-    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    const stop2 = document.createElementNS('https://www.w3.org/2000/svg', 'stop');
     stop2.setAttribute('offset', '100%');
     stop2.setAttribute('stop-color', '#16213e');
     stop2.setAttribute('stop-opacity', '1');
@@ -87,7 +87,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
     svg.appendChild(defs);
 
     // Background circle
-    const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const bgCircle = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
     bgCircle.setAttribute('cx', centerX);
     bgCircle.setAttribute('cy', centerY);
     bgCircle.setAttribute('r', outerRadius);
@@ -102,7 +102,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       const endAngle = sign.degree + 30;
       
       // Create zodiac section
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const path = document.createElementNS('https://www.w3.org/2000/svg', 'path');
       const startOuter = degreeToCoords(startAngle, outerRadius, centerX, centerY);
       const endOuter = degreeToCoords(endAngle, outerRadius, centerX, centerY);
       const startInner = degreeToCoords(startAngle, innerRadius, centerX, centerY);
@@ -128,7 +128,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       const symbolAngle = startAngle + 15; // Middle of the section
       const symbolPos = degreeToCoords(symbolAngle, (outerRadius + innerRadius) / 2, centerX, centerY);
       
-      const symbolText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const symbolText = document.createElementNS('https://www.w3.org/2000/svg', 'text');
       symbolText.setAttribute('x', symbolPos.x);
       symbolText.setAttribute('y', symbolPos.y);
       symbolText.setAttribute('text-anchor', 'middle');
@@ -141,7 +141,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
     });
 
     // Inner circle
-    const innerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const innerCircle = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
     innerCircle.setAttribute('cx', centerX);
     innerCircle.setAttribute('cy', centerY);
     innerCircle.setAttribute('r', innerRadius);
@@ -151,7 +151,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
     svg.appendChild(innerCircle);
 
     // Planet circle
-    const planetCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const planetCircle = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
     planetCircle.setAttribute('cx', centerX);
     planetCircle.setAttribute('cy', centerY);
     planetCircle.setAttribute('r', planetRadius);
@@ -170,7 +170,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       const planetPos = degreeToCoords(totalDegree, planetRadius, centerX, centerY);
       
       // Planet circle background
-      const planetBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const planetBg = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
       planetBg.setAttribute('cx', planetPos.x);
       planetBg.setAttribute('cy', planetPos.y);
       planetBg.setAttribute('r', '15');
@@ -180,7 +180,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       svg.appendChild(planetBg);
       
       // Planet symbol
-      const planetSymbol = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const planetSymbol = document.createElementNS('https://www.w3.org/2000/svg', 'text');
       planetSymbol.setAttribute('x', planetPos.x);
       planetSymbol.setAttribute('y', planetPos.y);
       planetSymbol.setAttribute('text-anchor', 'middle');
@@ -192,7 +192,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       svg.appendChild(planetSymbol);
       
       // Line from center to planet
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      const line = document.createElementNS('https://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', centerX);
       line.setAttribute('y1', centerY);
       line.setAttribute('x2', planetPos.x);
@@ -203,16 +203,16 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       svg.appendChild(line);
       
       // Add planet info on hover
-      const planetGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const planetGroup = document.createElementNS('https://www.w3.org/2000/svg', 'g');
       planetGroup.appendChild(planetBg);
       planetGroup.appendChild(planetSymbol);
       
       // Create tooltip
-      const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const tooltip = document.createElementNS('https://www.w3.org/2000/svg', 'g');
       tooltip.setAttribute('opacity', '0');
       tooltip.setAttribute('pointer-events', 'none');
       
-      const tooltipBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const tooltipBg = document.createElementNS('https://www.w3.org/2000/svg', 'rect');
       tooltipBg.setAttribute('x', planetPos.x + 20);
       tooltipBg.setAttribute('y', planetPos.y - 25);
       tooltipBg.setAttribute('width', '120');
@@ -222,7 +222,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       tooltipBg.setAttribute('stroke-width', '1');
       tooltipBg.setAttribute('rx', '5');
       
-      const tooltipText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const tooltipText = document.createElementNS('https://www.w3.org/2000/svg', 'text');
       tooltipText.setAttribute('x', planetPos.x + 80);
       tooltipText.setAttribute('y', planetPos.y - 10);
       tooltipText.setAttribute('text-anchor', 'middle');
@@ -230,7 +230,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
       tooltipText.setAttribute('font-size', '12');
       tooltipText.textContent = `${planet.name}`;
       
-      const tooltipText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const tooltipText2 = document.createElementNS('https://www.w3.org/2000/svg', 'text');
       tooltipText2.setAttribute('x', planetPos.x + 80);
       tooltipText2.setAttribute('y', planetPos.y + 5);
       tooltipText2.setAttribute('text-anchor', 'middle');
@@ -255,7 +255,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
     });
 
     // Center point
-    const centerPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const centerPoint = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
     centerPoint.setAttribute('cx', centerX);
     centerPoint.setAttribute('cy', centerY);
     centerPoint.setAttribute('r', '5');
@@ -265,7 +265,7 @@ const AstrologyChart = ({ chartData, size = 600 }) => {
     // Degree markers
     for (let i = 0; i < 360; i += 30) {
       const pos = degreeToCoords(i, outerRadius - 10, centerX, centerY);
-      const degreeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const degreeText = document.createElementNS('https://www.w3.org/2000/svg', 'text');
       degreeText.setAttribute('x', pos.x);
       degreeText.setAttribute('y', pos.y);
       degreeText.setAttribute('text-anchor', 'middle');
