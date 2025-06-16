@@ -46,7 +46,7 @@ const handleSubmit = async (event) => {
     console.log("Attempting login with:", { phone });
     
     const response = await axios.post(
-      "backend-docker-production-c584.up.railway.app/api/auth/login",
+      "https://backend-docker-production-c584.up.railway.app/api/auth/login",
       { phone, password },
       { withCredentials: true }
     );

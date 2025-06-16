@@ -53,7 +53,7 @@ const ForgotPassword = () => {
     try {
       // Sends phone, code and new password to the backend to update the user's password in the database.
       const response = await axios.post(
-        "backend-docker-production-c584.up.railway.app/api/auth/reset-password",
+        "https://backend-docker-production-c584.up.railway.app/api/auth/reset-password",
         { phone, code, newPassword },
         { withCredentials: true }
       );

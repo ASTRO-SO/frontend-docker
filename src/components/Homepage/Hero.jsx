@@ -12,7 +12,7 @@ export const Hero = () => {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await fetch('backend-docker-production-c584.up.railway.app/api/users/statistics');
+        const response = await fetch('https://backend-docker-production-c584.up.railway.app/api/users/statistics');
         if (!response.ok) {
           throw new Error('Failed to fetch statistics');
         }

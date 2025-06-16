@@ -17,7 +17,7 @@ function AstrologyManagement() {
   useEffect(() => {
     const fetchSystems = async () => {
       try {
-        const response = await fetch("backend-docker-production-c584.up.railway.app/api/Astrology/system", {
+        const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/Astrology/system", {
           credentials: "include",
         });
         const data = await response.json();
@@ -45,7 +45,7 @@ function AstrologyManagement() {
   // Fixed handleAddSystem to actually save to database
   const handleAddSystem = async () => {
     try {
-      const response = await fetch("backend-docker-production-c584.up.railway.app/api/Astrology", {
+      const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/Astrology", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,7 @@ function AstrologyManagement() {
 
   const handleDeleteSystem = async () => {
     try {
-      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/Astrology/${selectedSystem.id}`, {
+      const response = await fetch(`https://backend-docker-production-c584.up.railway.app/api/Astrology/${selectedSystem.id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -121,7 +121,7 @@ function AstrologyManagement() {
 
   const handleSaveEdit = async () => {
     try {
-      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/Astrology/${selectedSystem.id}`, {
+      const response = await fetch(`https://backend-docker-production-c584.up.railway.app/api/Astrology/${selectedSystem.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
