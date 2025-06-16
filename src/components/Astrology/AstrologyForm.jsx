@@ -507,8 +507,6 @@ const AstrologyForm = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          // Add Authorization header with Bearer token
-          "Authorization": `Bearer ${token}`
         },
         credentials: 'include' // This ensures cookies are sent
       });
@@ -525,14 +523,6 @@ const AstrologyForm = () => {
         if (profileData.gender) {
           setFormData(prev => ({ ...prev, gender: profileData.gender }));
         }
-      } else if (response.status === 401) {
-        // Token expired or invalid, clear auth state
-        console.log("Token expired or invalid, clearing auth state");
-        localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("token");
-        localStorage.removeItem("userRole");
-        setProfileError("Phiên đăng nhập đã hết hạn");
-        window.dispatchEvent(new Event("loginStateChanged"));
       } else {
         const errorData = await response.json();
         setProfileError(errorData.message || "Failed to fetch user profile");
