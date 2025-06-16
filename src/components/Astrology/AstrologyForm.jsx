@@ -712,7 +712,7 @@ useEffect(() => {
 
   return (
     <section className="p-10 rounded bg-neutral-900 bg-opacity-50 max-w-[1200px] w-[100%]">
-      {userProfile && (
+      {userProfile && !profileLoading && (
         <div className="bg-green-600 text-white p-3 rounded-md mb-4">
           <p>✓ Đã kết nối với tài khoản: {userProfile.name || userProfile.fullname || 'Người dùng'}</p>
           {userProfile.phoneNumber || userProfile.phone ? (
