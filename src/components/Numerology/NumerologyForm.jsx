@@ -53,8 +53,6 @@ const NumerologyForm = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            // Add authorization header if you're using JWT tokens
-            // "Authorization": `Bearer ${localStorage.getItem('token')}`
           },
           credentials: 'include' // Include cookies if using session-based auth
         });
@@ -140,8 +138,6 @@ const NumerologyForm = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Add authorization header if needed
-          // "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ 
           fullName, 

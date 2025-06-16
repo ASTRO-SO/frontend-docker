@@ -17,7 +17,7 @@ const UserAccount = ({ onChangePassword }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("backend-docker-production-c584.up.railway.app/api/auth/profile", {
+        const response = await axios.get("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
           withCredentials: true,
         });
         setUserData({
@@ -39,7 +39,7 @@ const UserAccount = ({ onChangePassword }) => {
   const handleSave = async () => {
     try {
       // Send the updated user data to your API
-      await axios.put("http://backend-docker-production-c584.up.railway.app/api/auth/profile", userData, {
+      await axios.put("https://backend-docker-production-c584.up.railway.app/api/auth/profile", userData, {
         withCredentials: true,
       });
       setIsEditing(false);
@@ -59,7 +59,7 @@ const UserAccount = ({ onChangePassword }) => {
   const handleLogout = () => {
     // Implement logout logic — e.g. call your logout API endpoint and remove session tokens from storage.
     axios
-      .post("http://backend-docker-production-c584.up.railway.app/api/auth/logout", {}, { withCredentials: true })
+      .post("https://backend-docker-production-c584.up.railway.app/api/auth/logout", {}, { withCredentials: true })
       .then(() => {
         localStorage.removeItem("isLoggedIn");
         localStorage.removeItem("token");
