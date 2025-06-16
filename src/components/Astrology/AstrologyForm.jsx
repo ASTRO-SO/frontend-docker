@@ -489,61 +489,67 @@ const AstrologyForm = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
   
-const apiClient = axios.create({
-  baseURL: "https://backend-docker-production-c584.up.railway.app/api",
-  withCredentials: true, // For cookies
-});
+  // Create axios instance with interceptors for consistent auth handling
+  const apiClient = axios.create({
+    baseURL: "https://backend-docker-production-c584.up.railway.app/api",
+    withCredentials: true, // For cookies
+  });
 
-// Add request interceptor to include token in headers if available
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Add response interceptor to handle auth errors
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("token");
-      window.location.href = "/";
+  // Add request interceptor to include token in headers if available
+  apiClient.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return Promise.reject(error);
-  }
-);
+    return config;
+  });
 
-useEffect(() => {
-  const fetchUserProfile = async () => {
-    try {
-      setProfileLoading(true);
-      const response = await apiClient.get("/auth/profile");
-
-      const profileData = response.data;  // This was correct
-      setUserProfile(profileData);
-      setProfileError(null);
-      
-      // Auto-fill form data if available in profile
-      if (profileData.fullname) {  // Changed from 'name' to 'fullname' to match API
-        setFormData(prev => ({ ...prev, name: profileData.fullname }));
+  // Add response interceptor to handle auth errors
+  apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        // Clear auth data and redirect to login
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("token");
+        window.location.href = "/";
       }
-      if (profileData.gender) {
-        setFormData(prev => ({ ...prev, gender: profileData.gender }));
-      }
-    } catch (error) {
-      setProfileError("Unable to connect to profile service");
-      console.error("Error fetching user profile:", error);
-    } finally {
-      setProfileLoading(false);
+      return Promise.reject(error);
     }
-  };
+  );
 
-  fetchUserProfile();
-}, []);
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setProfileLoading(true);
+        console.log("Fetching user profile...");
+        
+        const response = await apiClient.get("/auth/profile");
+        console.log("Profile response:", response);
+        console.log("Profile response data:", response.data);
+
+        const profileData = response.data;
+        setUserProfile(profileData);
+        setProfileError(null);
+        
+        // Auto-fill form data if available in profile
+        if (profileData.fullname) {
+          setFormData(prev => ({ ...prev, name: profileData.fullname }));
+        }
+        if (profileData.gender) {
+          setFormData(prev => ({ ...prev, gender: profileData.gender }));
+        }
+      } catch (error) {
+        setProfileError("Unable to connect to profile service");
+        console.error("Error fetching user profile:", error);
+        console.error("Error response:", error.response);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -609,12 +615,7 @@ useEffect(() => {
       const interpretations = await fetchChartInterpretations(birthChartData.chartData);
 
       // Get phone number from user profile
-      const phoneNumber = userProfile?.phoneNumber || 
-                         userProfile?.phone || 
-                         userProfile?.mobile || 
-                         userProfile?.data?.phoneNumber ||
-                         userProfile?.data?.phone ||
-                         null;
+      const phoneNumber = userProfile?.phone || null;
 
       // Create user info object
       const userInfo = {
@@ -680,9 +681,9 @@ useEffect(() => {
     <section className="p-10 rounded bg-neutral-900 bg-opacity-50 max-w-[1200px] w-[100%]">
       {userProfile && !profileLoading && (
         <div className="bg-green-600 text-white p-3 rounded-md mb-4">
-          <p>✓ Đã kết nối với tài khoản: {userProfile.name || userProfile.fullname || 'Người dùng'}</p>
-          {userProfile.phoneNumber || userProfile.phone ? (
-            <p className="text-sm opacity-90">Kết quả sẽ được lưu vào lịch sử tra cứu với số: {userProfile.phoneNumber || userProfile.phone}</p>
+          <p>✓ Đã kết nối với tài khoản: {userProfile.fullname || 'Người dùng'}</p>
+          {userProfile.phone ? (
+            <p className="text-sm opacity-90">Kết quả sẽ được lưu vào lịch sử tra cứu với số: {userProfile.phone}</p>
           ) : (
             <p className="text-sm opacity-90">Không tìm thấy số điện thoại - kết quả sẽ không được lưu</p>
           )}
