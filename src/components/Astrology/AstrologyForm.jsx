@@ -497,23 +497,46 @@ const AstrologyForm = () => {
       const isLoggedIn = localStorage.getItem("isLoggedIn");
       const token = localStorage.getItem("token");
       
+      // Debug logging
+      console.log("Debug - Auth check:", {
+        isLoggedIn,
+        hasToken: !!token,
+        tokenLength: token ? token.length : 0,
+        tokenPreview: token ? token.substring(0, 20) + "..." : "no token",
+        allLocalStorageKeys: Object.keys(localStorage),
+        tokenType: typeof token
+      });
+      
       if (!isLoggedIn || isLoggedIn !== "true" || !token) {
         console.log("User not logged in, skipping profile fetch");
         setProfileLoading(false);
         return;
       }
 
+      // Additional token validation
+      if (token === "null" || token === "undefined" || token.trim() === "") {
+        console.error("Invalid token detected:", token);
+        setProfileLoading(false);
+        return;
+      }
+
+      console.log("Making API call with token:", token.substring(0, 20) + "...");
+
       const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // Add this line
+          "Authorization": `Bearer ${token}`
         },
-        credentials: 'include' // Keep this for cookie support
+        credentials: 'include'
       });
+
+      console.log("Response status:", response.status);
+      console.log("Response headers:", [...response.headers.entries()]);
 
       if (response.ok) {
         const profileData = await response.json();
+        console.log("Profile data received:", profileData);
         setUserProfile(profileData);
         setProfileError(null);
         
@@ -525,6 +548,7 @@ const AstrologyForm = () => {
         }
       } else {
         const errorData = await response.json();
+        console.error("API Error:", errorData);
         setProfileError(errorData.message || "Failed to fetch user profile");
         console.error("Failed to fetch user profile:", response.statusText);
       }
