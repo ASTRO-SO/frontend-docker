@@ -488,7 +488,35 @@ const AstrologyForm = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
   
- useEffect(() => {
+const apiClient = axios.create({
+  baseURL: "https://backend-docker-production-c584.up.railway.app/api",
+  withCredentials: true, // For cookies
+});
+
+// Add request interceptor to include token in headers if available
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Add response interceptor to handle auth errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
+
+useEffect(() => {
   const fetchUserProfile = async () => {
     try {
       setProfileLoading(true);
@@ -522,39 +550,26 @@ const AstrologyForm = () => {
 
       console.log("Making API call with token:", token.substring(0, 20) + "...");
 
-      const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        credentials: 'include'
-      });
+      const response = await apiClient.get("/auth/profile");
 
       console.log("Response status:", response.status);
       console.log("Response headers:", [...response.headers.entries()]);
 
-      if (response.ok) {
-        const profileData = await response.json();
-        console.log("Profile data received:", profileData);
-        setUserProfile(profileData);
-        setProfileError(null);
-        
-        if (profileData.fullName || profileData.fullname) {
-          setFormData(prev => ({ ...prev, name: profileData.fullName || profileData.fullname }));
-        }
-        if (profileData.gender) {
-          setFormData(prev => ({ ...prev, gender: profileData.gender }));
-        }
-      } else {
-        const errorData = await response.json();
-        console.error("API Error:", errorData);
-        setProfileError(errorData.message || "Failed to fetch user profile");
-        console.error("Failed to fetch user profile:", response.statusText);
+      const profileData = response.data;
+      console.log("Profile data received:", profileData);
+      setUserProfile(profileData);
+      setProfileError(null);
+      
+      if (profileData.fullName || profileData.fullname) {
+        setFormData(prev => ({ ...prev, name: profileData.fullName || profileData.fullname }));
+      }
+      if (profileData.gender) {
+        setFormData(prev => ({ ...prev, gender: profileData.gender }));
       }
     } catch (error) {
-      setProfileError("Không thể kết nối đến server");
       console.error("Error fetching user profile:", error);
+      console.error("Error response:", error.response?.data);
+      setProfileError(error.response?.data?.message || "Không thể kết nối đến server");
     } finally {
       setProfileLoading(false);
     }
