@@ -488,7 +488,7 @@ const AstrologyForm = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
   
-  useEffect(() => {
+ useEffect(() => {
   const fetchUserProfile = async () => {
     try {
       setProfileLoading(true);
@@ -502,13 +502,14 @@ const AstrologyForm = () => {
         setProfileLoading(false);
         return;
       }
-      
+
       const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // Add this line
         },
-        credentials: 'include' // This ensures cookies are sent
+        credentials: 'include' // Keep this for cookie support
       });
 
       if (response.ok) {
@@ -516,7 +517,6 @@ const AstrologyForm = () => {
         setUserProfile(profileData);
         setProfileError(null);
         
-        // Auto-fill form data if available in profile
         if (profileData.fullName || profileData.fullname) {
           setFormData(prev => ({ ...prev, name: profileData.fullName || profileData.fullname }));
         }
