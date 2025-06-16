@@ -489,44 +489,65 @@ const AstrologyForm = () => {
   const [profileError, setProfileError] = useState(null);
   
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setProfileLoading(true);
-        const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const profileData = await response.json();
-          setUserProfile(profileData);
-          setProfileError(null);
-          
-          // Auto-fill form data if available in profile
-          if (profileData.fullName) {
-            setFormData(prev => ({ ...prev, name: profileData.fullName }));
-          }
-          if (profileData.gender) {
-            setFormData(prev => ({ ...prev, gender: profileData.gender }));
-          }
-        } else {
-          const errorData = await response.json();
-          setProfileError(errorData.message || "Failed to fetch user profile");
-          console.error("Failed to fetch user profile:", response.statusText);
-        }
-      } catch (error) {
-        setProfileError("Unable to connect to profile service");
-        console.error("Error fetching user profile:", error);
-      } finally {
+  const fetchUserProfile = async () => {
+    try {
+      setProfileLoading(true);
+      
+      // Check if user is logged in first
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      const token = localStorage.getItem("token");
+      
+      if (!isLoggedIn || isLoggedIn !== "true" || !token) {
+        console.log("User not logged in, skipping profile fetch");
         setProfileLoading(false);
+        return;
       }
-    };
+      
+      const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          // Add Authorization header with Bearer token
+          "Authorization": `Bearer ${token}`
+        },
+        credentials: 'include' // This ensures cookies are sent
+      });
 
-    fetchUserProfile();
-  }, []);
+      if (response.ok) {
+        const profileData = await response.json();
+        setUserProfile(profileData);
+        setProfileError(null);
+        
+        // Auto-fill form data if available in profile
+        if (profileData.fullName || profileData.fullname) {
+          setFormData(prev => ({ ...prev, name: profileData.fullName || profileData.fullname }));
+        }
+        if (profileData.gender) {
+          setFormData(prev => ({ ...prev, gender: profileData.gender }));
+        }
+      } else if (response.status === 401) {
+        // Token expired or invalid, clear auth state
+        console.log("Token expired or invalid, clearing auth state");
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("token");
+        localStorage.removeItem("userRole");
+        setProfileError("Phiên đăng nhập đã hết hạn");
+        window.dispatchEvent(new Event("loginStateChanged"));
+      } else {
+        const errorData = await response.json();
+        setProfileError(errorData.message || "Failed to fetch user profile");
+        console.error("Failed to fetch user profile:", response.statusText);
+      }
+    } catch (error) {
+      setProfileError("Không thể kết nối đến server");
+      console.error("Error fetching user profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  fetchUserProfile();
+}, []);
 
   const [formData, setFormData] = useState({
     name: "",
