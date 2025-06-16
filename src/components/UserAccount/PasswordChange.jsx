@@ -33,7 +33,7 @@ const PasswordChange = ({ onBack }) => {
 
     try {
       const response = await axios.put(
-        "http://localhost:3000/api/auth/change-password",
+        "backend-docker-production-c584.up.railway.app/api/auth/change-password",
         { currentPassword, newPassword },
         { withCredentials: true }
       );

@@ -49,7 +49,7 @@ const NumerologyForm = () => {
     const fetchUserProfile = async () => {
       try {
         setProfileLoading(true);
-        const response = await fetch("http://localhost:3000/api/auth/profile", {
+        const response = await fetch("backend-docker-production-c584.up.railway.app/api/auth/profile", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -136,7 +136,7 @@ const NumerologyForm = () => {
                          null;
 
       // Call API to get meanings from database
-      const response = await fetch("http://localhost:3000/api/numerology/calculate", {
+      const response = await fetch("backend-docker-production-c584.up.railway.app/api/numerology/calculate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

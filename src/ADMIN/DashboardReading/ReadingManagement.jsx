@@ -5,7 +5,7 @@ import TabNavigation from "./TabNavigation";
 // API functions to fetch data from your backend
 const fetchAstrologyReadingsFromDatabase = async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/astrology/readings', {
+    const response = await fetch('backend-docker-production-c584.up.railway.app/api/astrology/readings', {
       credentials: 'include'
     });
     if (!response.ok) {
@@ -20,7 +20,7 @@ const fetchAstrologyReadingsFromDatabase = async () => {
 
 const fetchNumerologyReadingsFromDatabase = async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/numerology/readings', {
+    const response = await fetch('backend-docker-production-c584.up.railway.app/api/numerology/readings', {
       credentials: 'include'
     });
     if (!response.ok) {
@@ -36,7 +36,7 @@ const fetchNumerologyReadingsFromDatabase = async () => {
 // Function to fetch user details
 const fetchUserDetails = async (phone) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/users/phone/${phone}`, {
+    const response = await fetch(`backend-docker-production-c584.up.railway.app/api/users/phone/${phone}`, {
       credentials: 'include'
     });
     if (!response.ok) {

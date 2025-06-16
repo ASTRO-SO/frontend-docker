@@ -20,7 +20,7 @@ function ActivityTable({ onUserCountUpdate }) {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/users'); 
+      const response = await fetch('backend-docker-production-c584.up.railway.app/api/users'); 
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -40,7 +40,7 @@ function ActivityTable({ onUserCountUpdate }) {
   const handleDelete = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
+        const response = await fetch(`backend-docker-production-c584.up.railway.app/api/users/${userId}`, {
           method: 'DELETE',
         });
         

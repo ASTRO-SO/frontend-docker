@@ -34,7 +34,7 @@ function MeaningsSection({ onZodiacClick, zodiacMeanings: propZodiacMeanings }) 
   useEffect(() => {
     const fetchSystems = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/astrology/system", {
+        const response = await fetch("backend-docker-production-c584.up.railway.app/api/astrology/system", {
           credentials: "include",
         });
         const data = await response.json();
@@ -59,7 +59,7 @@ function MeaningsSection({ onZodiacClick, zodiacMeanings: propZodiacMeanings }) 
   const fetchZodiacMeanings = async (zodiac, planet) => {
     setLoadingMeanings(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/astrology/meanings/${zodiac}`, {
+      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/astrology/meanings/${zodiac}`, {
         credentials: "include",
       });
       
@@ -80,7 +80,7 @@ function MeaningsSection({ onZodiacClick, zodiacMeanings: propZodiacMeanings }) 
 
   const saveZodiacMeanings = async (zodiac, meanings) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/astrology/meanings/${zodiac}`, {
+      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/astrology/meanings/${zodiac}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

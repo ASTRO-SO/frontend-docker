@@ -17,7 +17,7 @@ function NumerologyManagement() {
   useEffect(() => {
     const fetchSystems = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/numerology/system", {
+        const response = await fetch("backend-docker-production-c584.up.railway.app/api/numerology/system", {
           credentials: "include",
         });
         const data = await response.json();
@@ -45,7 +45,7 @@ function NumerologyManagement() {
   // Fixed handleAddSystem to actually save to database
   const handleAddSystem = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/Numerology", {
+      const response = await fetch("backend-docker-production-c584.up.railway.app/api/Numerology", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,7 @@ function NumerologyManagement() {
 
   const handleDeleteSystem = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/Numerology/${selectedSystem.id}`, {
+      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/Numerology/${selectedSystem.id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -121,7 +121,7 @@ function NumerologyManagement() {
 
   const handleSaveEdit = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/Numerology/${selectedSystem.id}`, {
+      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/Numerology/${selectedSystem.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

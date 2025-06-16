@@ -16,7 +16,7 @@ function MeaningsSection({ onNumberClick, numberMeanings: propNumberMeanings }) 
   useEffect(() => {
     const fetchSystems = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/numerology/system", {
+        const response = await fetch("backend-docker-production-c584.up.railway.app/api/numerology/system", {
           credentials: "include",
         });
         const data = await response.json();
@@ -41,7 +41,7 @@ function MeaningsSection({ onNumberClick, numberMeanings: propNumberMeanings }) 
   const fetchNumberMeanings = async (number) => {
     setLoadingMeanings(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/numerology/meanings/${number}`, {
+      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/numerology/meanings/${number}`, {
         credentials: "include",
       });
       
@@ -62,7 +62,7 @@ function MeaningsSection({ onNumberClick, numberMeanings: propNumberMeanings }) 
 
   const saveNumberMeanings = async (number, meanings) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/numerology/meanings/${number}`, {
+      const response = await fetch(`backend-docker-production-c584.up.railway.app/api/numerology/meanings/${number}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

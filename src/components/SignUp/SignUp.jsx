@@ -60,7 +60,7 @@ const SignUp = () => {
     if (validateForm()) {
       try {
         const response = await axios.post(
-          "http://localhost:3000/api/auth/signup",
+          "backend-docker-production-c584.up.railway.app/api/auth/signup",
           formData,
           { withCredentials: true }
         );

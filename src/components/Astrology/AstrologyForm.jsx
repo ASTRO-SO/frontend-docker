@@ -223,7 +223,7 @@ const saveUserAstrologyResults = async (userInfo, chartData) => {
 
     console.log('Payload to save:', payload);
 
-    const response = await fetch('http://localhost:3000/api/astrology/save-results', {
+    const response = await fetch('backend-docker-production-c584.up.railway.app/api/astrology/save-results', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -304,9 +304,9 @@ const fetchChartInterpretations = async (chartData) => {
 // Updated fetchPlanetInterpretation function with better error handling
 const fetchPlanetInterpretation = async (planet, zodiacSign) => {
   try {
-    console.log(`Making API call: http://localhost:3000/api/astrology/${planet}/${zodiacSign}`);
+    console.log(`Making API call: backend-docker-production-c584.up.railway.app/api/astrology/${planet}/${zodiacSign}`);
     
-    const response = await fetch(`http://localhost:3000/api/astrology/${planet}/${zodiacSign}`);
+    const response = await fetch(`backend-docker-production-c584.up.railway.app/api/astrology/${planet}/${zodiacSign}`);
     
     console.log(`API response status for ${planet}/${zodiacSign}:`, response.status);
     
@@ -343,7 +343,7 @@ const AstrologyForm = () => {
     const fetchUserProfile = async () => {
       try {
         setProfileLoading(true);
-        const response = await fetch("http://localhost:3000/api/auth/profile", {
+        const response = await fetch("backend-docker-production-c584.up.railway.app/api/auth/profile", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

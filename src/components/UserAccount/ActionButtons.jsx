@@ -8,10 +8,6 @@ const ActionButtons = ({ onChangePassword }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     
-    // Optionally, you can call your logout API endpoint here:
-    // axios.post("http://localhost:3000/api/auth/logout", {}, { withCredentials: true });
-
-    // Redirect the user (for example, take them to the signup/login page)
     window.location.href = "/";
   };
 
