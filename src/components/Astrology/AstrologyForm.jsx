@@ -509,7 +509,30 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Then inside the AstrologyForm component, replace the useEffect with:
+
+const AstrologyForm = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState(null);
+
+
+  const [formData, setFormData] = useState({
+    name: "",
+    nickname: "",
+    gender: "",
+    birthDay: "",
+    birthMonth: "",
+    birthYear: "",
+    birthHour: "",
+    birthMinute: "",
+    birthPeriod: "",
+    timezone: "GMT +7",
+    birthplace: "",
+  });
+
+  // Then inside the AstrologyForm component, replace the useEffect with:
 useEffect(() => {
   const fetchUserProfile = async () => {
     try {
@@ -540,28 +563,6 @@ useEffect(() => {
 
   fetchUserProfile();
 }, []);
-
-const AstrologyForm = () => {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileError, setProfileError] = useState(null);
-
-
-  const [formData, setFormData] = useState({
-    name: "",
-    nickname: "",
-    gender: "",
-    birthDay: "",
-    birthMonth: "",
-    birthYear: "",
-    birthHour: "",
-    birthMinute: "",
-    birthPeriod: "",
-    timezone: "GMT +7",
-    birthplace: "",
-  });
 
   const [isCalculating, setIsCalculating] = useState(false);
 
