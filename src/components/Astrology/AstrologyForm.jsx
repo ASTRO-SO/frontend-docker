@@ -528,8 +528,8 @@ useEffect(() => {
       setProfileError(null);
       
       // Auto-fill form data if available in profile
-      if (profileData.fullName) {
-        setFormData(prev => ({ ...prev, fullName: profileData.fullName }));
+      if (profileData.name) {
+        setFormData(prev => ({ ...prev, name: profileData.name }));
       }
       if (profileData.gender) {
         setFormData(prev => ({ ...prev, gender: profileData.gender }));
