@@ -521,56 +521,22 @@ useEffect(() => {
   const fetchUserProfile = async () => {
     try {
       setProfileLoading(true);
-      
-      // Check if user is logged in first
-      const isLoggedIn = localStorage.getItem("isLoggedIn");
-      const token = localStorage.getItem("token");
-      
-      // Debug logging
-      console.log("Debug - Auth check:", {
-        isLoggedIn,
-        hasToken: !!token,
-        tokenLength: token ? token.length : 0,
-        tokenPreview: token ? token.substring(0, 20) + "..." : "no token",
-        allLocalStorageKeys: Object.keys(localStorage),
-        tokenType: typeof token
-      });
-      
-      if (!isLoggedIn || isLoggedIn !== "true" || !token) {
-        console.log("User not logged in, skipping profile fetch");
-        setProfileLoading(false);
-        return;
-      }
-
-      // Additional token validation
-      if (token === "null" || token === "undefined" || token.trim() === "") {
-        console.error("Invalid token detected:", token);
-        setProfileLoading(false);
-        return;
-      }
-
-      console.log("Making API call with token:", token.substring(0, 20) + "...");
-
       const response = await apiClient.get("/auth/profile");
 
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers); // Fixed: axios headers are a plain object
-
       const profileData = response.data;
-      console.log("Profile data received:", profileData);
       setUserProfile(profileData);
       setProfileError(null);
       
-      if (profileData.fullName || profileData.fullname) {
-        setFormData(prev => ({ ...prev, name: profileData.fullName || profileData.fullname }));
+      // Auto-fill form data if available in profile
+      if (profileData.fullName) {
+        setFormData(prev => ({ ...prev, fullName: profileData.fullName }));
       }
       if (profileData.gender) {
         setFormData(prev => ({ ...prev, gender: profileData.gender }));
       }
     } catch (error) {
+      setProfileError("Unable to connect to profile service");
       console.error("Error fetching user profile:", error);
-      console.error("Error response:", error.response?.data);
-      setProfileError(error.response?.data?.message || "Không thể kết nối đến server");
     } finally {
       setProfileLoading(false);
     }
