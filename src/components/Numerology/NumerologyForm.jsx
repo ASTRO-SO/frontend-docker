@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import FormInput from "./FormInput";
 import NumerologyNotes from "./NumerologyNotes";
 import { useNavigate } from "react-router-dom";
@@ -44,46 +45,61 @@ const NumerologyForm = () => {
 
   const navigate = useNavigate(); 
 
-  // Fetch user profile on component mount
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setProfileLoading(true);
-        const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: 'include' // Include cookies if using session-based auth
-        });
+const apiClient = axios.create({
+  baseURL: "https://backend-docker-production-c584.up.railway.app/api",
+  withCredentials: true, // For cookies
+});
 
-        if (response.ok) {
-          const profileData = await response.json();
-          setUserProfile(profileData);
-          setProfileError(null);
-          
-          // Auto-fill form data if available in profile
-          if (profileData.fullName) {
-            setFormData(prev => ({ ...prev, fullName: profileData.fullName }));
-          }
-          if (profileData.gender) {
-            setFormData(prev => ({ ...prev, gender: profileData.gender }));
-          }
-        } else {
-          const errorData = await response.json();
-          setProfileError(errorData.message || "Failed to fetch user profile");
-          console.error("Failed to fetch user profile:", response.statusText);
-        }
-      } catch (error) {
-        setProfileError("Unable to connect to profile service");
-        console.error("Error fetching user profile:", error);
-      } finally {
-        setProfileLoading(false);
+// Add request interceptor to include token in headers if available
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Add response interceptor to handle auth errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
+
+useEffect(() => {
+  const fetchUserProfile = async () => {
+    try {
+      setProfileLoading(true);
+      const response = await apiClient.get("/auth/profile");
+
+      const profileData = response.data;
+      setUserProfile(profileData);
+      setProfileError(null);
+      
+      // Auto-fill form data if available in profile
+      if (profileData.fullName) {
+        setFormData(prev => ({ ...prev, fullName: profileData.fullName }));
       }
-    };
+      if (profileData.gender) {
+        setFormData(prev => ({ ...prev, gender: profileData.gender }));
+      }
+    } catch (error) {
+      setProfileError("Unable to connect to profile service");
+      console.error("Error fetching user profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
-    fetchUserProfile();
-  }, []);
+  fetchUserProfile();
+}, []);
 
   const calculateNumerology = async () => {
     const { fullName, birthDay, birthMonth, birthYear } = formData;
