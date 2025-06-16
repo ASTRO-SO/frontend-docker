@@ -48,6 +48,15 @@ const AstrologyChart = ({ chartData, size = 700 }) => {
     };
   };
 
+  // Create SVG element helper
+  const createSVGElement = (tagName, attributes = {}) => {
+    const element = document.createElementNS('http://www.w3.org/2000/svg', tagName);
+    Object.entries(attributes).forEach(([key, value]) => {
+      element.setAttribute(key, value);
+    });
+    return element;
+  };
+
   useEffect(() => {
     if (!chartData || !svgRef.current) return;
 
@@ -59,27 +68,32 @@ const AstrologyChart = ({ chartData, size = 700 }) => {
     const planetRadius = innerRadius - 30;
 
     // Clear previous content
-    svg.innerHTML = '';
+    while (svg.firstChild) {
+      svg.removeChild(svg.firstChild);
+    }
 
     // Create defs for gradients
-    const defs = document.createElementNS('https://www.w3.org/2000/svg', 'defs');
+    const defs = createSVGElement('defs');
     
     // Create radial gradient for background
-    const bgGradient = document.createElementNS('https://www.w3.org/2000/svg', 'radialGradient');
-    bgGradient.setAttribute('id', 'bgGradient');
-    bgGradient.setAttribute('cx', '50%');
-    bgGradient.setAttribute('cy', '50%');
-    bgGradient.setAttribute('r', '50%');
+    const bgGradient = createSVGElement('radialGradient', {
+      id: 'bgGradient',
+      cx: '50%',
+      cy: '50%',
+      r: '50%'
+    });
     
-    const stop1 = document.createElementNS('https://www.w3.org/2000/svg', 'stop');
-    stop1.setAttribute('offset', '0%');
-    stop1.setAttribute('stop-color', '#1a1a2e');
-    stop1.setAttribute('stop-opacity', '0.9');
+    const stop1 = createSVGElement('stop', {
+      offset: '0%',
+      'stop-color': '#1a1a2e',
+      'stop-opacity': '0.9'
+    });
     
-    const stop2 = document.createElementNS('https://www.w3.org/2000/svg', 'stop');
-    stop2.setAttribute('offset', '100%');
-    stop2.setAttribute('stop-color', '#16213e');
-    stop2.setAttribute('stop-opacity', '1');
+    const stop2 = createSVGElement('stop', {
+      offset: '100%',
+      'stop-color': '#16213e',
+      'stop-opacity': '1'
+    });
     
     bgGradient.appendChild(stop1);
     bgGradient.appendChild(stop2);
@@ -87,13 +101,14 @@ const AstrologyChart = ({ chartData, size = 700 }) => {
     svg.appendChild(defs);
 
     // Background circle
-    const bgCircle = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
-    bgCircle.setAttribute('cx', centerX);
-    bgCircle.setAttribute('cy', centerY);
-    bgCircle.setAttribute('r', outerRadius);
-    bgCircle.setAttribute('fill', 'url(#bgGradient)');
-    bgCircle.setAttribute('stroke', '#FFD700');
-    bgCircle.setAttribute('stroke-width', '2');
+    const bgCircle = createSVGElement('circle', {
+      cx: centerX,
+      cy: centerY,
+      r: outerRadius,
+      fill: 'url(#bgGradient)',
+      stroke: '#FFD700',
+      'stroke-width': '2'
+    });
     svg.appendChild(bgCircle);
 
     // Draw zodiac wheel
@@ -102,7 +117,6 @@ const AstrologyChart = ({ chartData, size = 700 }) => {
       const endAngle = sign.degree + 30;
       
       // Create zodiac section
-      const path = document.createElementNS('https://www.w3.org/2000/svg', 'path');
       const startOuter = degreeToCoords(startAngle, outerRadius, centerX, centerY);
       const endOuter = degreeToCoords(endAngle, outerRadius, centerX, centerY);
       const startInner = degreeToCoords(startAngle, innerRadius, centerX, centerY);
@@ -117,161 +131,178 @@ const AstrologyChart = ({ chartData, size = 700 }) => {
         'Z'
       ].join(' ');
       
-      path.setAttribute('d', pathData);
-      path.setAttribute('fill', sign.color);
-      path.setAttribute('fill-opacity', '0.2');
-      path.setAttribute('stroke', sign.color);
-      path.setAttribute('stroke-width', '1');
+      const path = createSVGElement('path', {
+        d: pathData,
+        fill: sign.color,
+        'fill-opacity': '0.2',
+        stroke: sign.color,
+        'stroke-width': '1'
+      });
       svg.appendChild(path);
       
       // Add zodiac symbol
       const symbolAngle = startAngle + 15; // Middle of the section
       const symbolPos = degreeToCoords(symbolAngle, (outerRadius + innerRadius) / 2, centerX, centerY);
       
-      const symbolText = document.createElementNS('https://www.w3.org/2000/svg', 'text');
-      symbolText.setAttribute('x', symbolPos.x);
-      symbolText.setAttribute('y', symbolPos.y);
-      symbolText.setAttribute('text-anchor', 'middle');
-      symbolText.setAttribute('dominant-baseline', 'central');
-      symbolText.setAttribute('font-size', '20');
-      symbolText.setAttribute('font-weight', 'bold');
-      symbolText.setAttribute('fill', sign.color);
+      const symbolText = createSVGElement('text', {
+        x: symbolPos.x,
+        y: symbolPos.y,
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+        'font-size': '20',
+        'font-weight': 'bold',
+        fill: sign.color
+      });
       symbolText.textContent = sign.symbol;
       svg.appendChild(symbolText);
     });
 
     // Inner circle
-    const innerCircle = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
-    innerCircle.setAttribute('cx', centerX);
-    innerCircle.setAttribute('cy', centerY);
-    innerCircle.setAttribute('r', innerRadius);
-    innerCircle.setAttribute('fill', 'none');
-    innerCircle.setAttribute('stroke', '#FFD700');
-    innerCircle.setAttribute('stroke-width', '2');
+    const innerCircle = createSVGElement('circle', {
+      cx: centerX,
+      cy: centerY,
+      r: innerRadius,
+      fill: 'none',
+      stroke: '#FFD700',
+      'stroke-width': '2'
+    });
     svg.appendChild(innerCircle);
 
     // Planet circle
-    const planetCircle = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
-    planetCircle.setAttribute('cx', centerX);
-    planetCircle.setAttribute('cy', centerY);
-    planetCircle.setAttribute('r', planetRadius);
-    planetCircle.setAttribute('fill', 'none');
-    planetCircle.setAttribute('stroke', '#888');
-    planetCircle.setAttribute('stroke-width', '1');
-    planetCircle.setAttribute('stroke-dasharray', '2,2');
+    const planetCircle = createSVGElement('circle', {
+      cx: centerX,
+      cy: centerY,
+      r: planetRadius,
+      fill: 'none',
+      stroke: '#888',
+      'stroke-width': '1',
+      'stroke-dasharray': '2,2'
+    });
     svg.appendChild(planetCircle);
 
     // Draw planets
-    Object.entries(chartData).forEach(([planetKey, planetData]) => {
-      if (!planetInfo[planetKey] || !planetData) return;
-      
-      const planet = planetInfo[planetKey];
-      const totalDegree = signToDegree(planetData.sign, planetData.degree);
-      const planetPos = degreeToCoords(totalDegree, planetRadius, centerX, centerY);
-      
-      // Planet circle background
-      const planetBg = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
-      planetBg.setAttribute('cx', planetPos.x);
-      planetBg.setAttribute('cy', planetPos.y);
-      planetBg.setAttribute('r', '15');
-      planetBg.setAttribute('fill', 'rgba(0,0,0,0.7)');
-      planetBg.setAttribute('stroke', planet.color);
-      planetBg.setAttribute('stroke-width', '2');
-      svg.appendChild(planetBg);
-      
-      // Planet symbol
-      const planetSymbol = document.createElementNS('https://www.w3.org/2000/svg', 'text');
-      planetSymbol.setAttribute('x', planetPos.x);
-      planetSymbol.setAttribute('y', planetPos.y);
-      planetSymbol.setAttribute('text-anchor', 'middle');
-      planetSymbol.setAttribute('dominant-baseline', 'central');
-      planetSymbol.setAttribute('font-size', planetKey === 'ascendant' ? '10' : '16');
-      planetSymbol.setAttribute('font-weight', 'bold');
-      planetSymbol.setAttribute('fill', planet.color);
-      planetSymbol.textContent = planet.symbol;
-      svg.appendChild(planetSymbol);
-      
-      // Line from center to planet
-      const line = document.createElementNS('https://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', centerX);
-      line.setAttribute('y1', centerY);
-      line.setAttribute('x2', planetPos.x);
-      line.setAttribute('y2', planetPos.y);
-      line.setAttribute('stroke', planet.color);
-      line.setAttribute('stroke-width', '1');
-      line.setAttribute('stroke-opacity', '0.5');
-      svg.appendChild(line);
-      
-      // Add planet info on hover
-      const planetGroup = document.createElementNS('https://www.w3.org/2000/svg', 'g');
-      planetGroup.appendChild(planetBg);
-      planetGroup.appendChild(planetSymbol);
-      
-      // Create tooltip
-      const tooltip = document.createElementNS('https://www.w3.org/2000/svg', 'g');
-      tooltip.setAttribute('opacity', '0');
-      tooltip.setAttribute('pointer-events', 'none');
-      
-      const tooltipBg = document.createElementNS('https://www.w3.org/2000/svg', 'rect');
-      tooltipBg.setAttribute('x', planetPos.x + 20);
-      tooltipBg.setAttribute('y', planetPos.y - 25);
-      tooltipBg.setAttribute('width', '120');
-      tooltipBg.setAttribute('height', '40');
-      tooltipBg.setAttribute('fill', 'rgba(0,0,0,0.9)');
-      tooltipBg.setAttribute('stroke', planet.color);
-      tooltipBg.setAttribute('stroke-width', '1');
-      tooltipBg.setAttribute('rx', '5');
-      
-      const tooltipText = document.createElementNS('https://www.w3.org/2000/svg', 'text');
-      tooltipText.setAttribute('x', planetPos.x + 80);
-      tooltipText.setAttribute('y', planetPos.y - 10);
-      tooltipText.setAttribute('text-anchor', 'middle');
-      tooltipText.setAttribute('fill', 'white');
-      tooltipText.setAttribute('font-size', '12');
-      tooltipText.textContent = `${planet.name}`;
-      
-      const tooltipText2 = document.createElementNS('https://www.w3.org/2000/svg', 'text');
-      tooltipText2.setAttribute('x', planetPos.x + 80);
-      tooltipText2.setAttribute('y', planetPos.y + 5);
-      tooltipText2.setAttribute('text-anchor', 'middle');
-      tooltipText2.setAttribute('fill', planet.color);
-      tooltipText2.setAttribute('font-size', '10');
-      tooltipText2.textContent = `${zodiacSigns[planetData.sign - 1]?.name} ${planetData.degree}°`;
-      
-      tooltip.appendChild(tooltipBg);
-      tooltip.appendChild(tooltipText);
-      tooltip.appendChild(tooltipText2);
-      
-      planetGroup.addEventListener('mouseenter', () => {
-        tooltip.setAttribute('opacity', '1');
+    if (chartData && typeof chartData === 'object') {
+      Object.entries(chartData).forEach(([planetKey, planetData]) => {
+        if (!planetInfo[planetKey] || !planetData) return;
+        
+        const planet = planetInfo[planetKey];
+        const totalDegree = signToDegree(planetData.sign, planetData.degree);
+        const planetPos = degreeToCoords(totalDegree, planetRadius, centerX, centerY);
+        
+        // Planet circle background
+        const planetBg = createSVGElement('circle', {
+          cx: planetPos.x,
+          cy: planetPos.y,
+          r: '15',
+          fill: 'rgba(0,0,0,0.7)',
+          stroke: planet.color,
+          'stroke-width': '2'
+        });
+        svg.appendChild(planetBg);
+        
+        // Planet symbol
+        const planetSymbol = createSVGElement('text', {
+          x: planetPos.x,
+          y: planetPos.y,
+          'text-anchor': 'middle',
+          'dominant-baseline': 'central',
+          'font-size': planetKey === 'ascendant' ? '10' : '16',
+          'font-weight': 'bold',
+          fill: planet.color
+        });
+        planetSymbol.textContent = planet.symbol;
+        svg.appendChild(planetSymbol);
+        
+        // Line from center to planet
+        const line = createSVGElement('line', {
+          x1: centerX,
+          y1: centerY,
+          x2: planetPos.x,
+          y2: planetPos.y,
+          stroke: planet.color,
+          'stroke-width': '1',
+          'stroke-opacity': '0.5'
+        });
+        svg.appendChild(line);
+        
+        // Create planet group for hover effects
+        const planetGroup = createSVGElement('g');
+        planetGroup.appendChild(planetBg.cloneNode(true));
+        planetGroup.appendChild(planetSymbol.cloneNode(true));
+        
+        // Create tooltip
+        const tooltip = createSVGElement('g', {
+          opacity: '0',
+          'pointer-events': 'none'
+        });
+        
+        const tooltipBg = createSVGElement('rect', {
+          x: planetPos.x + 20,
+          y: planetPos.y - 25,
+          width: '120',
+          height: '40',
+          fill: 'rgba(0,0,0,0.9)',
+          stroke: planet.color,
+          'stroke-width': '1',
+          rx: '5'
+        });
+        
+        const tooltipText = createSVGElement('text', {
+          x: planetPos.x + 80,
+          y: planetPos.y - 10,
+          'text-anchor': 'middle',
+          fill: 'white',
+          'font-size': '12'
+        });
+        tooltipText.textContent = planet.name;
+        
+        const tooltipText2 = createSVGElement('text', {
+          x: planetPos.x + 80,
+          y: planetPos.y + 5,
+          'text-anchor': 'middle',
+          fill: planet.color,
+          'font-size': '10'
+        });
+        tooltipText2.textContent = `${zodiacSigns[planetData.sign - 1]?.name} ${planetData.degree}°`;
+        
+        tooltip.appendChild(tooltipBg);
+        tooltip.appendChild(tooltipText);
+        tooltip.appendChild(tooltipText2);
+        
+        // Add event listeners
+        planetGroup.addEventListener('mouseenter', () => {
+          tooltip.setAttribute('opacity', '1');
+        });
+        
+        planetGroup.addEventListener('mouseleave', () => {
+          tooltip.setAttribute('opacity', '0');
+        });
+        
+        svg.appendChild(planetGroup);
+        svg.appendChild(tooltip);
       });
-      
-      planetGroup.addEventListener('mouseleave', () => {
-        tooltip.setAttribute('opacity', '0');
-      });
-      
-      svg.appendChild(planetGroup);
-      svg.appendChild(tooltip);
-    });
+    }
 
     // Center point
-    const centerPoint = document.createElementNS('https://www.w3.org/2000/svg', 'circle');
-    centerPoint.setAttribute('cx', centerX);
-    centerPoint.setAttribute('cy', centerY);
-    centerPoint.setAttribute('r', '5');
-    centerPoint.setAttribute('fill', '#FFD700');
+    const centerPoint = createSVGElement('circle', {
+      cx: centerX,
+      cy: centerY,
+      r: '5',
+      fill: '#FFD700'
+    });
     svg.appendChild(centerPoint);
 
     // Degree markers
     for (let i = 0; i < 360; i += 30) {
       const pos = degreeToCoords(i, outerRadius - 10, centerX, centerY);
-      const degreeText = document.createElementNS('https://www.w3.org/2000/svg', 'text');
-      degreeText.setAttribute('x', pos.x);
-      degreeText.setAttribute('y', pos.y);
-      degreeText.setAttribute('text-anchor', 'middle');
-      degreeText.setAttribute('dominant-baseline', 'central');
-      degreeText.setAttribute('font-size', '10');
-      degreeText.setAttribute('fill', '#888');
+      const degreeText = createSVGElement('text', {
+        x: pos.x,
+        y: pos.y,
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+        'font-size': '10',
+        fill: '#888'
+      });
       degreeText.textContent = `${i}°`;
       svg.appendChild(degreeText);
     }
