@@ -1,7 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const AstrologyChart = ({ chartData, size = 700 }) => {
   const svgRef = useRef(null);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Ensure we're on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   // Zodiac signs data
   const zodiacSigns = [
@@ -58,7 +64,7 @@ const AstrologyChart = ({ chartData, size = 700 }) => {
   };
 
   useEffect(() => {
-    if (!chartData || !svgRef.current) return;
+    if (!chartData || !svgRef.current || !isClient) return;
 
     const svg = svgRef.current;
     const centerX = size / 2;
@@ -307,14 +313,40 @@ const AstrologyChart = ({ chartData, size = 700 }) => {
       svg.appendChild(degreeText);
     }
 
-  }, [chartData, size]);
+  }, [chartData, size, isClient]);
+
+  // Loading state for server-side rendering
+  if (!isClient) {
+    return (
+      <div className="flex flex-col items-center justify-center" style={{ width: size, height: size }}>
+        <div className="text-center text-gray-400">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto mb-2"></div>
+          <p>Loading chart...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!chartData) {
-    return <div className="text-center text-gray-400">No chart data available</div>;
+    return (
+      <div className="flex flex-col items-center justify-center" style={{ width: size, height: size }}>
+        <div className="text-center text-gray-400">
+          <p>No chart data available</p>
+          <p className="text-sm mt-2">Expected format:</p>
+          <pre className="text-xs mt-2 bg-gray-800 p-2 rounded">
+{`{
+  sun: { sign: 1, degree: 15 },
+  moon: { sign: 3, degree: 22 },
+  // ... other planets
+}`}
+          </pre>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center bg-gray-900 p-4 rounded-lg">
       <svg
         ref={svgRef}
         width={size}
