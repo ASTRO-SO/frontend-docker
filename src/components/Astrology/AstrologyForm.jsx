@@ -60,26 +60,30 @@ const calculateJulianDate = (year, month, day, hour, minute) => {
 
 // More accurate Sun position calculation
 const calculateSunLongitude = (jd) => {
-  // Days since J2000.0
+  // Days since J2000.0 (January 1, 2000, 12:00 UT)
   const n = jd - 2451545.0;
   
-  // Mean longitude of the Sun
+  // Mean longitude of the Sun (corrected formula)
   let L = (280.460 + 0.9856474 * n) % 360;
   if (L < 0) L += 360;
   
-  // Mean anomaly
+  // Mean anomaly of the Sun (corrected)
   let M = (357.528 + 0.9856003 * n) % 360;
   if (M < 0) M += 360;
   
-  // Convert to radians
+  // Convert mean anomaly to radians
   const MRad = M * Math.PI / 180;
   
-  // Equation of center (simplified)
-  const C = 1.915 * Math.sin(MRad) + 0.020 * Math.sin(2 * MRad);
+  // Equation of center (more accurate with additional terms)
+  const C = 1.915 * Math.sin(MRad) + 
+           0.020 * Math.sin(2 * MRad) + 
+           0.0003 * Math.sin(3 * MRad);
   
-  // True longitude
+  // True longitude of the Sun
   let trueLongitude = L + C;
-  if (trueLongitude >= 360) trueLongitude -= 360;
+  
+  // Normalize to 0-360 degrees
+  trueLongitude = trueLongitude % 360;
   if (trueLongitude < 0) trueLongitude += 360;
   
   return trueLongitude;

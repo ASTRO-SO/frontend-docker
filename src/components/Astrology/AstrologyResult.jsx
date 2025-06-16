@@ -2,6 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../Homepage/Header";
 import { useAuth } from "../../AuthProvider";
+import AstrologyChart from "./AstrologyChart";
 
 const ResultBlock = ({ title, subTitle, description }) => (
   <section className="mb-[32px] bg-[#000] bg-opacity-[0.7] p-[24px] rounded-[8px] shadow-md">
@@ -178,13 +179,9 @@ const AstrologyResult = () => {
         {userInfo && <UserInfoBlock userInfo={userInfo} />}
         
         {/* Astrology Chart Image */}
-        <div className="w-full flex justify-center mb-[32px]">
-          <img
-            src="/astrology-wheel.png"
-            alt="Astrology Chart"
-            className="w-[200px] h-auto"
-          />
-        </div>
+        <AstrologyChart 
+          chartData={chartData}
+        />
 
         {/* Chart Results */}
         <div className="mb-[24px]">
