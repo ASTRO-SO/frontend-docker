@@ -554,7 +554,7 @@ useEffect(() => {
       const response = await apiClient.get("/auth/profile");
 
       console.log("Response status:", response.status);
-      console.log("Response headers:", [...response.headers.entries()]);
+      console.log("Response headers:", response.headers); // Fixed: axios headers are a plain object
 
       const profileData = response.data;
       console.log("Profile data received:", profileData);
@@ -712,7 +712,7 @@ useEffect(() => {
 
   return (
     <section className="p-10 rounded bg-neutral-900 bg-opacity-50 max-w-[1200px] w-[100%]">
-      {userProfile && !profileLoading && (
+      {userProfile && (
         <div className="bg-green-600 text-white p-3 rounded-md mb-4">
           <p>✓ Đã kết nối với tài khoản: {userProfile.name || userProfile.fullname || 'Người dùng'}</p>
           {userProfile.phoneNumber || userProfile.phone ? (
