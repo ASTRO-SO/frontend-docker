@@ -523,13 +523,13 @@ useEffect(() => {
       setProfileLoading(true);
       const response = await apiClient.get("/auth/profile");
 
-      const profileData = response.data;
+      const profileData = response.data;  // This was correct
       setUserProfile(profileData);
       setProfileError(null);
       
       // Auto-fill form data if available in profile
-      if (profileData.name) {
-        setFormData(prev => ({ ...prev, name: profileData.name }));
+      if (profileData.fullname) {  // Changed from 'name' to 'fullname' to match API
+        setFormData(prev => ({ ...prev, name: profileData.fullname }));
       }
       if (profileData.gender) {
         setFormData(prev => ({ ...prev, gender: profileData.gender }));
