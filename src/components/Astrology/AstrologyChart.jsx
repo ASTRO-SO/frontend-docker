@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-const AstrologyChart = ({ chartData, size = 600 }) => {
+const AstrologyChart = ({ chartData, size = 700 }) => {
   const svgRef = useRef(null);
   
   // Zodiac signs data
