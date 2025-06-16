@@ -38,22 +38,160 @@ const ZODIAC_SIGNS = [
   "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
   "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
 ];
-  
 
-const calculatePlanetSign = (jd, planetName) => {
-  try {
-    // Simplified calculation - in real implementation you'd use astronomia library
-    // For now, return a mock calculation based on Julian date and planet
-    const mockLongitude = ((jd - 2451545.0) * 0.9856 + (planetName.length * 30)) % 360;
-    const sign = Math.floor(mockLongitude / 30) + 1;
-    console.log(`Tính cung cho ${planetName}:`, { longitude: mockLongitude, sign });
-    return sign;
-  } catch (error) {
-    console.error('Lỗi tính cung:', { planetName, error: error.message });
-    return 1; // Aries
-  }
+// More accurate Julian Date calculation
+const calculateJulianDate = (year, month, day, hour, minute) => {
+  // Convert to UT
+  const ut = hour + minute / 60.0;
+  
+  // Julian Day calculation
+  let a = Math.floor((14 - month) / 12);
+  let y = year + 4800 - a;
+  let m = month + 12 * a - 3;
+  
+  let jdn = day + Math.floor((153 * m + 2) / 5) + 365 * y + 
+            Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+  
+  // Add time fraction
+  let jd = jdn + (ut / 24.0) - 0.5;
+  
+  return jd;
 };
 
+// More accurate Sun position calculation
+const calculateSunLongitude = (jd) => {
+  // Days since J2000.0
+  const n = jd - 2451545.0;
+  
+  // Mean longitude of the Sun
+  let L = (280.460 + 0.9856474 * n) % 360;
+  if (L < 0) L += 360;
+  
+  // Mean anomaly
+  let M = (357.528 + 0.9856003 * n) % 360;
+  if (M < 0) M += 360;
+  
+  // Convert to radians
+  const MRad = M * Math.PI / 180;
+  
+  // Equation of center (simplified)
+  const C = 1.915 * Math.sin(MRad) + 0.020 * Math.sin(2 * MRad);
+  
+  // True longitude
+  let trueLongitude = L + C;
+  if (trueLongitude >= 360) trueLongitude -= 360;
+  if (trueLongitude < 0) trueLongitude += 360;
+  
+  return trueLongitude;
+};
+
+// Improved Moon position calculation
+const calculateMoonLongitude = (jd) => {
+  const n = jd - 2451545.0;
+  
+  // Mean longitude of the Moon
+  let L = (218.316 + 13.176396 * n) % 360;
+  if (L < 0) L += 360;
+  
+  // Mean anomaly of the Moon
+  let M = (134.963 + 13.064993 * n) % 360;
+  if (M < 0) M += 360;
+  
+  // Mean anomaly of the Sun
+  let Ms = (357.529 + 0.985600 * n) % 360;
+  if (Ms < 0) Ms += 360;
+  
+  // Moon's argument of latitude
+  let F = (93.272 + 13.229350 * n) % 360;
+  if (F < 0) F += 360;
+  
+  // Convert to radians
+  const MRad = M * Math.PI / 180;
+  const MsRad = Ms * Math.PI / 180;
+  const FRad = F * Math.PI / 180;
+  
+  // Simplified perturbations
+  const perturbation = 6.289 * Math.sin(MRad) +
+                      1.274 * Math.sin(2 * (L - Ms) * Math.PI / 180) +
+                      0.658 * Math.sin(2 * FRad) +
+                      0.214 * Math.sin(2 * MRad) +
+                      -0.186 * Math.sin(MsRad);
+  
+  let trueLongitude = L + perturbation;
+  if (trueLongitude >= 360) trueLongitude -= 360;
+  if (trueLongitude < 0) trueLongitude += 360;
+  
+  return trueLongitude;
+};
+
+// Calculate planet positions (simplified approximations)
+const calculatePlanetLongitude = (jd, planetName) => {
+  const n = jd - 2451545.0; // Days since J2000.0
+  
+  let longitude;
+  
+  switch (planetName.toLowerCase()) {
+    case 'mercury':
+      // Mercury: fast-moving planet
+      longitude = (252.25 + 4.092317 * n) % 360;
+      break;
+    case 'venus':
+      // Venus
+      longitude = (181.98 + 1.602130 * n) % 360;
+      break;
+    case 'mars':
+      // Mars
+      longitude = (355.43 + 0.524039 * n) % 360;
+      break;
+    case 'jupiter':
+      // Jupiter
+      longitude = (34.35 + 0.083056 * n) % 360;
+      break;
+    case 'saturn':
+      // Saturn
+      longitude = (50.08 + 0.033371 * n) % 360;
+      break;
+    case 'uranus':
+      // Uranus
+      longitude = (314.05 + 0.011733 * n) % 360;
+      break;
+    case 'neptune':
+      // Neptune
+      longitude = (304.35 + 0.005982 * n) % 360;
+      break;
+    case 'pluto':
+      // Pluto (simplified)
+      longitude = (238.93 + 0.003968 * n) % 360;
+      break;
+    case 'chiron':
+      // Chiron (simplified approximation)
+      longitude = (77.00 + 0.002 * n) % 360;
+      break;
+    default:
+      longitude = 0;
+  }
+  
+  // Ensure positive longitude
+  if (longitude < 0) longitude += 360;
+  
+  return longitude;
+};
+
+// Convert longitude to zodiac sign
+const longitudeToSign = (longitude) => {
+  return Math.floor(longitude / 30) + 1;
+};
+
+// Calculate Ascendant (simplified)
+const calculateAscendant = (jd, latitude) => {
+  // This is a very simplified calculation
+  // Real ascendant calculation requires sidereal time and more complex math
+  const lst = ((jd - 2451545.0) * 1.002737909 + 280.46061837) % 360;
+  const ascLongitude = (lst + latitude * 0.5) % 360;
+  return ascLongitude;
+};
+
+// Updated main calculation function
 const calculateBirthChartAccurate = ({ date, time, birthPlace, latitude, longitude, tz }) => {
   try {
     console.log('Input hàm calculateBirthChartAccurate:', { date, time, birthPlace, latitude, longitude, tz });
@@ -61,21 +199,6 @@ const calculateBirthChartAccurate = ({ date, time, birthPlace, latitude, longitu
     if (!date || !time || !birthPlace || !tz) {
       throw new Error(`Thiếu input: ${JSON.stringify({ date, time, birthPlace, tz })}`);
     }
-
-    // Date format validation (YYYY-MM-DD)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      throw new Error(`Định dạng ngày sai: ${date}. Phải là YYYY-MM-DD`);
-    }
-    
-    // Time format validation (handle both HH:mm and HH:mm AM/PM)
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](\s?(AM|PM))?$/i;
-    if (!timeRegex.test(time)) {
-      throw new Error(`Định dạng giờ sai: ${time}. Phải là HH:mm hoặc HH:mm AM/PM`);
-    }
-
-    // Normalize timezone
-    const normalizedTz = normalizeTimezone(tz);
-    console.log('Timezone chuẩn hóa:', normalizedTz);
 
     // Parse date and time
     const [year, month, day] = date.split('-').map(Number);
@@ -90,95 +213,118 @@ const calculateBirthChartAccurate = ({ date, time, birthPlace, latitude, longitu
       hour = 0;
     }
 
-    // Simplified Julian Date calculation
-    const jd = 2451545.0 + (year - 2000) * 365.25 + (month - 1) * 30.44 + day + (hour + minute / 60) / 24;
+    // Calculate Julian Date
+    const jd = calculateJulianDate(year, month, day, hour, minute);
     console.log('Julian Date:', jd);
 
-    // Mock coordinates if not provided (using Vietnam defaults)
-    const lat = latitude || 10.8231; // Ho Chi Minh City
+    // Default coordinates (Vietnam)
+    const lat = latitude || 10.8231;
     const lon = longitude || 106.6297;
 
-    // Calculate positions for celestial bodies (simplified mock calculations)
-    const ascendantSign = Math.floor(((jd + lat / 100) % 360) / 30) + 1;
-    const sunSign = calculatePlanetSign(jd, 'sun');
-    const moonSign = calculatePlanetSign(jd + 0.1, 'moon');
-    const mercurySign = calculatePlanetSign(jd + 0.2, 'mercury');
-    const venusSign = calculatePlanetSign(jd + 0.3, 'venus');
-    const marsSign = calculatePlanetSign(jd + 0.4, 'mars');
-    const jupiterSign = calculatePlanetSign(jd + 0.5, 'jupiter');
-    const saturnSign = calculatePlanetSign(jd + 0.6, 'saturn');
-    const neptuneSign = calculatePlanetSign(jd + 0.7, 'neptune');
-    const plutoSign = calculatePlanetSign(jd + 0.8, 'pluto');
-    const chironSign = calculatePlanetSign(jd + 0.9, 'chiron');
+    // Calculate Sun position (most important for zodiac sign)
+    const sunLongitude = calculateSunLongitude(jd);
+    const sunSign = longitudeToSign(sunLongitude);
+    
+    // Calculate Moon position
+    const moonLongitude = calculateMoonLongitude(jd);
+    const moonSign = longitudeToSign(moonLongitude);
+    
+    // Calculate other planets
+    const mercuryLongitude = calculatePlanetLongitude(jd, 'mercury');
+    const mercurySign = longitudeToSign(mercuryLongitude);
+    
+    const venusLongitude = calculatePlanetLongitude(jd, 'venus');
+    const venusSign = longitudeToSign(venusLongitude);
+    
+    const marsLongitude = calculatePlanetLongitude(jd, 'mars');
+    const marsSign = longitudeToSign(marsLongitude);
+    
+    const jupiterLongitude = calculatePlanetLongitude(jd, 'jupiter');
+    const jupiterSign = longitudeToSign(jupiterLongitude);
+    
+    const saturnLongitude = calculatePlanetLongitude(jd, 'saturn');
+    const saturnSign = longitudeToSign(saturnLongitude);
+    
+    const neptuneL = calculatePlanetLongitude(jd, 'neptune');
+    const neptuneSign = longitudeToSign(neptuneL);
+    
+    const plutoL = calculatePlanetLongitude(jd, 'pluto');
+    const plutoSign = longitudeToSign(plutoL);
+    
+    const chironL = calculatePlanetLongitude(jd, 'chiron');
+    const chironSign = longitudeToSign(chironL);
+    
+    // Calculate Ascendant
+    const ascendantLongitude = calculateAscendant(jd, lat);
+    const ascendantSign = longitudeToSign(ascendantLongitude);
 
     const chartData = {
       ascendant: { 
         sign: ascendantSign, 
-        degree: Math.floor((jd * 10) % 30),
+        degree: Math.floor(ascendantLongitude % 30),
         zodiacName: ZODIAC_SIGNS[ascendantSign]
       },
       sun: { 
         sign: sunSign, 
-        degree: Math.floor((jd * 11) % 30),
+        degree: Math.floor(sunLongitude % 30),
         zodiacName: ZODIAC_SIGNS[sunSign]
       },
       moon: { 
         sign: moonSign, 
-        degree: Math.floor((jd * 12) % 30),
+        degree: Math.floor(moonLongitude % 30),
         zodiacName: ZODIAC_SIGNS[moonSign]
       },
       mercury: { 
         sign: mercurySign, 
-        degree: Math.floor((jd * 13) % 30),
+        degree: Math.floor(mercuryLongitude % 30),
         zodiacName: ZODIAC_SIGNS[mercurySign]
       },
       venus: { 
         sign: venusSign, 
-        degree: Math.floor((jd * 14) % 30),
+        degree: Math.floor(venusLongitude % 30),
         zodiacName: ZODIAC_SIGNS[venusSign]
       },
       mars: { 
         sign: marsSign, 
-        degree: Math.floor((jd * 15) % 30),
+        degree: Math.floor(marsLongitude % 30),
         zodiacName: ZODIAC_SIGNS[marsSign]
       },
       jupiter: { 
         sign: jupiterSign, 
-        degree: Math.floor((jd * 16) % 30),
+        degree: Math.floor(jupiterLongitude % 30),
         zodiacName: ZODIAC_SIGNS[jupiterSign]
       },
       saturn: { 
         sign: saturnSign, 
-        degree: Math.floor((jd * 17) % 30),
+        degree: Math.floor(saturnLongitude % 30),
         zodiacName: ZODIAC_SIGNS[saturnSign]
       },
       neptune: { 
         sign: neptuneSign, 
-        degree: Math.floor((jd * 18) % 30),
+        degree: Math.floor(neptuneL % 30),
         zodiacName: ZODIAC_SIGNS[neptuneSign]
       },
       pluto: { 
         sign: plutoSign, 
-        degree: Math.floor((jd * 19) % 30),
+        degree: Math.floor(plutoL % 30),
         zodiacName: ZODIAC_SIGNS[plutoSign]
       },
       chiron: { 
         sign: chironSign, 
-        degree: Math.floor((jd * 20) % 30),
+        degree: Math.floor(chironL % 30),
         zodiacName: ZODIAC_SIGNS[chironSign]
       }
     };
 
     console.log('Chart data tính được:', chartData);
+    console.log(`Sun longitude: ${sunLongitude}°, Sign: ${ZODIAC_SIGNS[sunSign]}`);
+    
     return { chartData };
     
   } catch (error) {
-    console.error('Lỗi trong calculateBirthChartAccurate:', {
-      message: error.message,
-      stack: error.stack,
-      input: { date, time, birthPlace, latitude, longitude, tz }
-    });
+    console.error('Lỗi trong calculateBirthChartAccurate:', error);
     
+    // Return default chart on error
     const defaultChart = {
       chartData: {
         ascendant: { sign: 1, degree: 0, zodiacName: "Aries" },
@@ -195,7 +341,6 @@ const calculateBirthChartAccurate = ({ date, time, birthPlace, latitude, longitu
       }
     };
     
-    console.log('Trả về chart mặc định:', defaultChart);
     return defaultChart;
   }
 };
@@ -223,7 +368,7 @@ const saveUserAstrologyResults = async (userInfo, chartData) => {
 
     console.log('Payload to save:', payload);
 
-    const response = await fetch('https://backend-docker-production-c584.up.railway.app/api/astrology/save-results', {
+    const response = await fetch('http://localhost:3000/api/astrology/save-results', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -304,9 +449,9 @@ const fetchChartInterpretations = async (chartData) => {
 // Updated fetchPlanetInterpretation function with better error handling
 const fetchPlanetInterpretation = async (planet, zodiacSign) => {
   try {
-    console.log(`Making API call: https://backend-docker-production-c584.up.railway.app/api/astrology/${planet}/${zodiacSign}`);
+    console.log(`Making API call: http://localhost:3000/api/astrology/${planet}/${zodiacSign}`);
     
-    const response = await fetch(`https://backend-docker-production-c584.up.railway.app/api/astrology/${planet}/${zodiacSign}`);
+    const response = await fetch(`http://localhost:3000/api/astrology/${planet}/${zodiacSign}`);
     
     console.log(`API response status for ${planet}/${zodiacSign}:`, response.status);
     
@@ -343,7 +488,7 @@ const AstrologyForm = () => {
     const fetchUserProfile = async () => {
       try {
         setProfileLoading(true);
-        const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
+        const response = await fetch("http://localhost:3000/api/auth/profile", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
