@@ -354,10 +354,13 @@ const calculateBirthChartAccurate = ({ date, time, birthPlace, latitude, longitu
 const saveUserAstrologyResults = async (userInfo, chartData) => {
   try {
     console.log('Saving user astrology results to database...');
-    
+    const today = new Date();
+    const todayFormatted = today.getFullYear() + '-' + 
+                          String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(today.getDate()).padStart(2, '0');
     const payload = {
       PhoneNumber: userInfo.phone || userInfo.phoneNumber || userInfo.PhoneNumber || null,
-      date: userInfo.birthDate,
+      date: todayFormatted,
       ascendant: chartData.ascendant.zodiacName,
       chiron: chartData.chiron.zodiacName,
       jupiter: chartData.jupiter.zodiacName,
