@@ -26,11 +26,6 @@ const Footer = () => {
       <div className="w-5/12 px-4 max-md:w-1/2 max-sm:w-full max-sm:mb-6">
   <h2 className="mb-4 text-xl font-medium">Thông tin chung</h2>
   <ul className="text-sm leading-relaxed">
-    <li>
-      <a href="/contact" className="block text-2xl mb-10">
-        XXX
-      </a>
-    </li>
     <li className="mb-2">
       <a href="#" className="block">
         Công cụ được tùy chỉnh theo ngày sinh và tên chính xác của bạn ... Vì vậy, hãy lưu ý: thông tin bạn sắp nhận được có thể khiến bạn bị sốc.
