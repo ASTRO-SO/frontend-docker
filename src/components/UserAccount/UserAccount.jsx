@@ -8,7 +8,6 @@ const UserAccount = ({ onChangePassword }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userId, setUserId] = useState(null);
   const [userData, setUserData] = useState({
     fullname: "",
     email: "",
@@ -18,19 +17,9 @@ const UserAccount = ({ onChangePassword }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // First, you need to get the current user's ID
-        // This could come from localStorage, a token, or another endpoint
-        const storedUserId = localStorage.getItem("userId");
-        
-        if (!storedUserId) {
-          throw new Error("User ID not found. Please log in again.");
-        }
-
-        setUserId(storedUserId);
-
-        // Use the existing backend route to get user by ID
+        // Use the existing profile endpoint from auth.js
         const response = await axios.get(
-          `https://backend-docker-production-c584.up.railway.app/api/users/${storedUserId}`,
+          `https://backend-docker-production-c584.up.railway.app/api/auth/profile`,
           {
             withCredentials: true,
           }
@@ -62,13 +51,9 @@ const UserAccount = ({ onChangePassword }) => {
 
   const handleSave = async () => {
     try {
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-
-      // Use the existing PUT route to update user
+      // Use the existing profile update endpoint from auth.js
       await axios.put(
-        `https://backend-docker-production-c584.up.railway.app/api/users/${userId}`,
+        `https://backend-docker-production-c584.up.railway.app/api/auth/profile`,
         {
           phone: userData.phone,
           fullname: userData.fullname,
