@@ -58,6 +58,51 @@ function ActivityTable({ onUserCountUpdate }) {
     }
   };
 
+  const handleRoleChange = async (userId, currentRole, newRole) => {
+    const action = newRole === 'admin' ? 'promote' : 'demote';
+    const confirmMessage = `Are you sure you want to ${action} this user to ${newRole === null ? 'user' : newRole}?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        // Find the user to get their current data
+        const user = users.find(u => u.idaccount === userId);
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        const response = await fetch(`https://backend-docker-production-c584.up.railway.app/api/users/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phone: user.phone,
+            fullname: user.fullname,
+            email: user.email,
+            role: newRole // Will be 'admin' or null (for user)
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Update user role in local state
+        setUsers(users.map(u => 
+          u.idaccount === userId 
+            ? { ...u, role: newRole }
+            : u
+        ));
+        
+        const roleDisplay = newRole === null ? 'user' : newRole;
+        alert(`User ${action}d to ${roleDisplay} successfully`);
+      } catch (err) {
+        console.error('Error updating user role:', err);
+        alert(`Failed to ${action} user. Please try again.`);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <section className="rounded-xl border bg-zinc-800 border-zinc-700">
@@ -123,33 +168,55 @@ function ActivityTable({ onUserCountUpdate }) {
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
-                <tr key={user.idaccount} className="border-b border-zinc-700">
-                  <td className="p-4 text-sm text-white">{user.idaccount}</td>
-                  <td className="p-4 text-sm text-white">{user.phone || 'N/A'}</td>
-                  <td className="p-4 text-sm text-white">{user.fullname || 'N/A'}</td>
-                  <td className="p-4 text-sm text-white">{user.email || 'N/A'}</td>
-                  <td className="p-4 text-sm text-white">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      user.role === 'admin' 
-                        ? 'bg-purple-600 text-white' 
-                        : 'bg-gray-600 text-white'
-                    }`}>
-                      {user.role || 'user'}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => handleDelete(user.idaccount)}
-                        className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              users.map((user) => {
+                const isAdmin = user.role === 'admin';
+                const displayRole = user.role || 'user';
+                
+                return (
+                  <tr key={user.idaccount} className="border-b border-zinc-700">
+                    <td className="p-4 text-sm text-white">{user.idaccount}</td>
+                    <td className="p-4 text-sm text-white">{user.phone || 'N/A'}</td>
+                    <td className="p-4 text-sm text-white">{user.fullname || 'N/A'}</td>
+                    <td className="p-4 text-sm text-white">{user.email || 'N/A'}</td>
+                    <td className="p-4 text-sm text-white">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        isAdmin 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-gray-600 text-white'
+                      }`}>
+                        {displayRole}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-2 flex-wrap">
+                        {isAdmin ? (
+                          <button 
+                            onClick={() => handleRoleChange(user.idaccount, user.role, null)}
+                            className="px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-md transition-colors"
+                            title="Demote to user"
+                          >
+                            Demote
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => handleRoleChange(user.idaccount, user.role, 'admin')}
+                            className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                            title="Promote to admin"
+                          >
+                            Promote
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => handleDelete(user.idaccount)}
+                          className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
