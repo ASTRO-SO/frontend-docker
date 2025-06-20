@@ -55,74 +55,16 @@ const Login = () => {
 
       // Check if login was successful based on status code
       if (response.status === 200 || response.status === 201) {
-        // Try to extract token from various possible locations
+        // Extract token and role based on your backend response structure
         let token = null;
         let userRole = null;
 
-        // Common token field names to check
-        const tokenFields = [
-          'token', 'accessToken', 'access_token', 'authToken', 'auth_token',
-          'jwt', 'jwtToken', 'bearerToken', 'sessionToken'
-        ];
+        // Your backend returns: { message: 'Login successful', token: '...', userRole: '...' }
+        // Extract token directly from response
+        token = response.data.token;
 
-        // Common role field names to check
-        const roleFields = [
-          'userRole', 'role', 'user_role', 'roles', 'userType', 'user_type'
-        ];
-
-        // Check direct response data
-        for (const field of tokenFields) {
-          if (response.data[field]) {
-            token = response.data[field];
-            break;
-          }
-        }
-
-        // Check nested data object
-        if (!token && response.data.data) {
-          for (const field of tokenFields) {
-            if (response.data.data[field]) {
-              token = response.data.data[field];
-              break;
-            }
-          }
-        }
-
-        // Check user object if it exists
-        if (!token && response.data.user) {
-          for (const field of tokenFields) {
-            if (response.data.user[field]) {
-              token = response.data.user[field];
-              break;
-            }
-          }
-        }
-
-        // Extract role
-        for (const field of roleFields) {
-          if (response.data[field]) {
-            userRole = response.data[field];
-            break;
-          }
-        }
-
-        if (!userRole && response.data.data) {
-          for (const field of roleFields) {
-            if (response.data.data[field]) {
-              userRole = response.data.data[field];
-              break;
-            }
-          }
-        }
-
-        if (!userRole && response.data.user) {
-          for (const field of roleFields) {
-            if (response.data.user[field]) {
-              userRole = response.data.user[field];
-              break;
-            }
-          }
-        }
+        // Extract userRole (this comes from user.role in your database)
+        userRole = response.data.userRole;
 
         console.log("Token extraction result:", {
           token: token ? "Found" : "Not found",
