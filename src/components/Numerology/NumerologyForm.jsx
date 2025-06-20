@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import FormInput from "./FormInput";
 import NumerologyNotes from "./NumerologyNotes";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +14,35 @@ import {
   calculateAttitudeNumber,
   calculateChallengeNumbers
 } from "./ResultCalculate";
+
+// Create axios client with interceptors
+const apiClient = axios.create({
+  baseURL: "https://backend-docker-production-c584.up.railway.app/api",
+  withCredentials: true, // For cookies
+});
+
+// Add request interceptor to include token in headers if available
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Add response interceptor to handle auth errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
 
 const NumerologyForm = () => {
   const [formData, setFormData] = useState({
@@ -44,37 +74,22 @@ const NumerologyForm = () => {
 
   const navigate = useNavigate(); 
 
-  // Fetch user profile on component mount
+  // Fetch user profile on component mount using axios client
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         setProfileLoading(true);
-        const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            // Add authorization header if you're using JWT tokens
-            // "Authorization": `Bearer ${localStorage.getItem('token')}`
-          },
-          credentials: 'include' // Include cookies if using session-based auth
-        });
-
-        if (response.ok) {
-          const profileData = await response.json();
-          setUserProfile(profileData);
-          setProfileError(null);
-          
-          // Auto-fill form data if available in profile
-          if (profileData.fullName) {
-            setFormData(prev => ({ ...prev, fullName: profileData.fullName }));
-          }
-          if (profileData.gender) {
-            setFormData(prev => ({ ...prev, gender: profileData.gender }));
-          }
-        } else {
-          const errorData = await response.json();
-          setProfileError(errorData.message || "Failed to fetch user profile");
-          console.error("Failed to fetch user profile:", response.statusText);
+        const response = await apiClient.get("/auth/profile");
+        const profileData = response.data;
+        setUserProfile(profileData);
+        setProfileError(null);
+        
+        // Auto-fill form data if available in profile
+        if (profileData.fullName) {
+          setFormData(prev => ({ ...prev, fullName: profileData.fullName }));
+        }
+        if (profileData.gender) {
+          setFormData(prev => ({ ...prev, gender: profileData.gender }));
         }
       } catch (error) {
         setProfileError("Unable to connect to profile service");
@@ -135,34 +150,30 @@ const NumerologyForm = () => {
                          userProfile?.data?.phone ||
                          null;
 
-      // Call API to get meanings from database
-      const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/numerology/calculate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Add authorization header if needed
-          // "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ 
-          fullName, 
-          date: dateForCalculation,
-          numbers: numbersToFetch,
-          phoneNumber: phoneNumber
-        }),
-        credentials: 'include' // Include cookies if using session-based auth
+      // Call API using axios client to get meanings from database
+      const response = await apiClient.post("/numerology/calculate", {
+        fullName, 
+        date: dateForCalculation,
+        numbers: numbersToFetch,
+        phoneNumber: phoneNumber
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        // Navigate to result page
-        navigate("/numerology/result", { state: { result } });
-      } else {
-        alert(result.error || "Đã xảy ra lỗi khi gọi API.");
-      }
+      const result = response.data;
+      
+      // Navigate to result page
+      navigate("/numerology/result", { state: { result } });
+      
     } catch (err) {
       console.error("Lỗi gọi API:", err);
-      alert("Không thể kết nối đến máy chủ.");
+      
+      // Handle different types of errors
+      if (err.response?.data?.error) {
+        alert(err.response.data.error);
+      } else if (err.response?.status) {
+        alert(`Lỗi ${err.response.status}: ${err.response.statusText}`);
+      } else {
+        alert("Không thể kết nối đến máy chủ.");
+      }
     } finally {
       setIsLoading(false);
     }

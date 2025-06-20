@@ -1,4 +1,5 @@
 "use client";
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FormField from "./FormField";
@@ -31,7 +32,6 @@ const normalizeTimezone = (tz) => {
   console.warn('Timezone không hợp lệ:', tz);
   return 'UTC+7'; // Default to Vietnam timezone
 };
-
 
 // Zodiac sign mapping
 const ZODIAC_SIGNS = [
@@ -353,10 +353,14 @@ const calculateBirthChartAccurate = ({ date, time, birthPlace, latitude, longitu
 const saveUserAstrologyResults = async (userInfo, chartData) => {
   try {
     console.log('Saving user astrology results to database...');
+    const today = new Date();
+    const todayFormatted = today.getFullYear() + '-' + 
+                          String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(today.getDate()).padStart(2, '0');
     
     const payload = {
       PhoneNumber: userInfo.phone || userInfo.phoneNumber || userInfo.PhoneNumber || null,
-      date: userInfo.birthDate,
+      date: todayFormatted,
       ascendant: chartData.ascendant.zodiacName,
       chiron: chartData.chiron.zodiacName,
       jupiter: chartData.jupiter.zodiacName,
@@ -372,23 +376,10 @@ const saveUserAstrologyResults = async (userInfo, chartData) => {
 
     console.log('Payload to save:', payload);
 
-    const response = await fetch('https://backend-docker-production-c584.up.railway.app/api/astrology/save-results', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
+    const response = await apiClient.post('/astrology/save-results', payload);
 
-    if (response.ok) {
-      const result = await response.json();
-      console.log('Successfully saved user astrology results:', result);
-      return { success: true, data: result };
-    } else {
-      const errorText = await response.text();
-      console.error('Failed to save user astrology results:', response.status, errorText);
-      return { success: false, error: `HTTP ${response.status}: ${errorText}` };
-    }
+    console.log('Successfully saved user astrology results:', response.data);
+    return { success: true, data: response.data };
   } catch (error) {
     console.error('Error saving user astrology results:', error);
     return { success: false, error: error.message };
@@ -450,36 +441,54 @@ const fetchChartInterpretations = async (chartData) => {
   }
 };
 
-// Updated fetchPlanetInterpretation function with better error handling
+// Updated fetchPlanetInterpretation function with apiClient
 const fetchPlanetInterpretation = async (planet, zodiacSign) => {
   try {
-    console.log(`Making API call: https://backend-docker-production-c584.up.railway.app/api/astrology/${planet}/${zodiacSign}`);
+    console.log(`Making API call: /astrology/${planet}/${zodiacSign}`);
     
-    const response = await fetch(`https://backend-docker-production-c584.up.railway.app/api/astrology/${planet}/${zodiacSign}`);
+    const response = await apiClient.get(`/astrology/${planet}/${zodiacSign}`);
     
-    console.log(`API response status for ${planet}/${zodiacSign}:`, response.status);
+    console.log(`API response for ${planet}/${zodiacSign}:`, response.data);
     
-    if (response.ok) {
-      const data = await response.json();
-      console.log(`API response data for ${planet}/${zodiacSign}:`, data);
-      
-      // Check if we got a valid description
-      if (data.description && data.description.trim() !== '') {
-        return data.description;
-      } else {
-        console.warn(`Empty description received for ${planet}/${zodiacSign}`);
-        return `Không tìm thấy giải thích cho ${planet} trong ${zodiacSign}`;
-      }
+    // Check if we got a valid description
+    if (response.data.description && response.data.description.trim() !== '') {
+      return response.data.description;
     } else {
-      const errorText = await response.text();
-      console.error(`API call failed for ${planet}/${zodiacSign}:`, response.status, errorText);
-      return `Không thể tải giải thích cho ${planet} trong ${zodiacSign} (Lỗi: ${response.status})`;
+      console.warn(`Empty description received for ${planet}/${zodiacSign}`);
+      return `Không tìm thấy giải thích cho ${planet} trong ${zodiacSign}`;
     }
   } catch (error) {
-    console.error(`Network error fetching interpretation for ${planet}/${zodiacSign}:`, error);
-    return `Lỗi mạng khi tải giải thích cho ${planet} trong ${zodiacSign}`;
+    console.error(`API call failed for ${planet}/${zodiacSign}:`, error);
+    return `Không thể tải giải thích cho ${planet} trong ${zodiacSign} (Lỗi: ${error.response?.status || 'Network'})`;
   }
 };
+
+const apiClient = axios.create({
+  baseURL: "https://backend-docker-production-c584.up.railway.app/api",
+  withCredentials: true,
+});
+
+// Add request interceptor to include token in headers if available
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Add response interceptor to handle auth errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
 
 const AstrologyForm = () => {
   const navigate = useNavigate();
@@ -492,30 +501,21 @@ const AstrologyForm = () => {
     const fetchUserProfile = async () => {
       try {
         setProfileLoading(true);
-        const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: 'include'
-        });
+        const response = await apiClient.get("/auth/profile");
 
-        if (response.ok) {
-          const profileData = await response.json();
-          setUserProfile(profileData);
-          setProfileError(null);
-          
-          // Auto-fill form data if available in profile
-          if (profileData.fullName) {
-            setFormData(prev => ({ ...prev, name: profileData.fullName }));
-          }
-          if (profileData.gender) {
-            setFormData(prev => ({ ...prev, gender: profileData.gender }));
-          }
-        } else {
-          const errorData = await response.json();
-          setProfileError(errorData.message || "Failed to fetch user profile");
-          console.error("Failed to fetch user profile:", response.statusText);
+        const profileData = response.data;
+        setUserProfile(profileData);
+        setProfileError(null);
+        
+        // Auto-fill form data if available in profile
+        if (profileData.fullName || profileData.fullname) {
+          setFormData(prev => ({ 
+            ...prev, 
+            name: profileData.fullName || profileData.fullname 
+          }));
+        }
+        if (profileData.gender) {
+          setFormData(prev => ({ ...prev, gender: profileData.gender }));
         }
       } catch (error) {
         setProfileError("Unable to connect to profile service");
@@ -592,12 +592,7 @@ const AstrologyForm = () => {
       const interpretations = await fetchChartInterpretations(birthChartData.chartData);
 
       // Get phone number from user profile
-      const phoneNumber = userProfile?.phoneNumber || 
-                         userProfile?.phone || 
-                         userProfile?.mobile || 
-                         userProfile?.data?.phoneNumber ||
-                         userProfile?.data?.phone ||
-                         null;
+      const phoneNumber = userProfile?.phone || null;
 
       // Create user info object
       const userInfo = {
@@ -663,9 +658,9 @@ const AstrologyForm = () => {
     <section className="p-10 rounded bg-neutral-900 bg-opacity-50 max-w-[1200px] w-[100%]">
       {userProfile && !profileLoading && (
         <div className="bg-green-600 text-white p-3 rounded-md mb-4">
-          <p>✓ Đã kết nối với tài khoản: {userProfile.name || userProfile.fullname || 'Người dùng'}</p>
-          {userProfile.phoneNumber || userProfile.phone ? (
-            <p className="text-sm opacity-90">Kết quả sẽ được lưu vào lịch sử tra cứu với số: {userProfile.phoneNumber || userProfile.phone}</p>
+          <p>✓ Đã kết nối với tài khoản: {userProfile.fullname || 'Người dùng'}</p>
+          {userProfile.phone ? (
+            <p className="text-sm opacity-90">Kết quả sẽ được lưu vào lịch sử tra cứu với số: {userProfile.phone}</p>
           ) : (
             <p className="text-sm opacity-90">Không tìm thấy số điện thoại - kết quả sẽ không được lưu</p>
           )}
