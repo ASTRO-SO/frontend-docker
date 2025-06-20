@@ -8,6 +8,7 @@ const UserAccount = ({ onChangePassword }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [userData, setUserData] = useState({
     fullname: "",
     email: "",
@@ -17,17 +18,40 @@ const UserAccount = ({ onChangePassword }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
-          withCredentials: true,
-        });
+        // First, you need to get the current user's ID
+        // This could come from localStorage, a token, or another endpoint
+        const storedUserId = localStorage.getItem("userId");
+        
+        if (!storedUserId) {
+          throw new Error("User ID not found. Please log in again.");
+        }
+
+        setUserId(storedUserId);
+
+        // Use the existing backend route to get user by ID
+        const response = await axios.get(
+          `https://backend-docker-production-c584.up.railway.app/api/users/${storedUserId}`,
+          {
+            withCredentials: true,
+          }
+        );
+        
         setUserData({
           fullname: response.data.fullname,
-          email: response.data.email,
+          email: response.data.email || "",
           phone: response.data.phone,
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
-        setError("Error fetching user data");
+        setError(err.response?.data?.error || "Error fetching user data");
+        
+        // If error is 404 or authentication related, redirect to login
+        if (err.response?.status === 404 || err.response?.status === 401) {
+          localStorage.removeItem("isLoggedIn");
+          localStorage.removeItem("token");
+          localStorage.removeItem("userId");
+          window.location.href = "/";
+        }
       } finally {
         setLoading(false);
       }
@@ -38,14 +62,28 @@ const UserAccount = ({ onChangePassword }) => {
 
   const handleSave = async () => {
     try {
-      // Send the updated user data to your API
-      await axios.put("https://backend-docker-production-c584.up.railway.app/api/auth/profile", userData, {
-        withCredentials: true,
-      });
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+
+      // Use the existing PUT route to update user
+      await axios.put(
+        `https://backend-docker-production-c584.up.railway.app/api/users/${userId}`,
+        {
+          phone: userData.phone,
+          fullname: userData.fullname,
+          email: userData.email,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      
       setIsEditing(false);
-      // Optionally, you could refresh the user data after a successful update.
+      alert("Profile updated successfully!");
     } catch (err) {
       console.error("Error updating profile:", err);
+      alert(err.response?.data?.error || "Error updating profile");
     }
   };
 
@@ -57,17 +95,26 @@ const UserAccount = ({ onChangePassword }) => {
   };
 
   const handleLogout = () => {
-    // Implement logout logic — e.g. call your logout API endpoint and remove session tokens from storage.
+    // Clear all stored data
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    
+    // You might want to call a logout endpoint if it exists
     axios
-      .post("https://backend-docker-production-c584.up.railway.app/api/auth/logout", {}, { withCredentials: true })
+      .post(
+        "https://backend-docker-production-c584.up.railway.app/api/auth/logout",
+        {},
+        { withCredentials: true }
+      )
       .then(() => {
-        localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("token");
         window.location.href = "/";
         console.log("Logout successful");
       })
       .catch((error) => {
         console.error("Logout error:", error);
+        // Still redirect even if logout endpoint fails
+        window.location.href = "/";
       });
   };
 
@@ -76,7 +123,17 @@ const UserAccount = ({ onChangePassword }) => {
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <p>{error}</p>
+        <button 
+          onClick={() => window.location.href = "/login"}
+          className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -117,7 +174,7 @@ const UserAccount = ({ onChangePassword }) => {
           value={userData.phone}
           type="tel"
           placeholder="Nhập số điện thoại"
-          isEditing={false}
+          isEditing={false} // Keep phone readonly as in original
           onChange={handleFieldChange("phone")}
         />
 
@@ -139,7 +196,7 @@ const UserAccount = ({ onChangePassword }) => {
         )}
       </div>
 
-      <ActionButtons onChangePassword={onChangePassword} />
+      <ActionButtons onChangePassword={onChangePassword} handleLogout={handleLogout} />
     </section>
   );
 };
