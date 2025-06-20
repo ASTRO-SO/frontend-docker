@@ -5,6 +5,7 @@ import StatsCard from "./StatsCard";
 import ActivityTable from "./ActivityTable";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
+import SplashScreen from "../../components/SplashScreen"
 
 function AstroAdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -22,7 +23,8 @@ function AstroAdminDashboard() {
   // Remove hardcoded stats and make it dynamic
   const [userCount, setUserCount] = useState(0);
 
-  const navigate = useNavigate();
+const navigate = useNavigate();
+const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is admin and redirect if needed
@@ -31,7 +33,16 @@ function AstroAdminDashboard() {
       navigate("/");
       return;
     }
+
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
   }, [navigate]);
+
+    if (loading) {
+    return <SplashScreen />;
+  }
 
   // Function to update user count from ActivityTable
   const handleUserCountUpdate = (count) => {

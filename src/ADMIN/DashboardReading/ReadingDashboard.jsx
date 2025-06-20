@@ -4,6 +4,7 @@ import Header from "../layout/Header";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import ReadingManagement from "./ReadingManagement";
+import SplashScreen from "../../components/SplashScreen"
 
 function ReadingDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -20,15 +21,25 @@ function ReadingDashboard() {
   ]);
 
 const navigate = useNavigate();
+const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is admin and redirect if needed
     const userRole = localStorage.getItem("userRole");
-    //if (userRole !== "admin") {
-    //  navigate("/");
-    //  return;
-    //}
+    if (userRole !== "admin") {
+      navigate("/");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
   }, [navigate]);
+
+    if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
     <div className="flex w-screen min-h-screen bg-gray-900">
