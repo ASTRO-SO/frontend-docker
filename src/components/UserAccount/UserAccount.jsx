@@ -14,52 +14,20 @@ const UserAccount = ({ onChangePassword }) => {
     phone: "",
   });
 
-  // Create axios instance with interceptors for consistent auth handling
-  const apiClient = axios.create({
-    baseURL: "https://backend-docker-production-c584.up.railway.app/api",
-    withCredentials: true, // For cookies
-  });
-
-  // Add request interceptor to include token in headers if available
-  apiClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
-
-  // Add response interceptor to handle auth errors
-  apiClient.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response?.status === 401) {
-        // Clear auth data and redirect to login
-        localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("token");
-        window.location.href = "/";
-      }
-      return Promise.reject(error);
-    }
-  );
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        console.log("Fetching user profile...");
-        const response = await apiClient.get("/auth/profile");
-        console.log("Profile response:", response.data);
-        
-        setUserData({
-          fullname: response.data.fullname || "",
-          email: response.data.email || "",
-          phone: response.data.phone || "",
+        const response = await axios.get("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
+          withCredentials: true,
         });
-        setError(null);
+        setUserData({
+          fullname: response.data.fullname,
+          email: response.data.email,
+          phone: response.data.phone,
+        });
       } catch (err) {
         console.error("Error fetching profile:", err);
-        console.error("Error response:", err.response?.data);
-        setError(err.response?.data?.error || "Error fetching user data");
+        setError("Error fetching user data");
       } finally {
         setLoading(false);
       }
@@ -70,34 +38,14 @@ const UserAccount = ({ onChangePassword }) => {
 
   const handleSave = async () => {
     try {
-      setLoading(true);
-      console.log("Updating profile with data:", userData);
-      
-      const response = await apiClient.put("/auth/profile", {
-        fullname: userData.fullname,
-        email: userData.email,
-        // Note: phone is not included as it shouldn't be changeable
+      // Send the updated user data to your API
+      await axios.put("https://backend-docker-production-c584.up.railway.app/api/auth/profile", userData, {
+        withCredentials: true,
       });
-      
-      console.log("Update response:", response.data);
       setIsEditing(false);
-      setError(null);
-      
-      // Update userData with the response if the backend returns updated data
-      if (response.data.user) {
-        setUserData({
-          fullname: response.data.user.fullname || "",
-          email: response.data.user.email || "",
-          phone: response.data.user.phone || "",
-        });
-      }
-      
+      // Optionally, you could refresh the user data after a successful update.
     } catch (err) {
       console.error("Error updating profile:", err);
-      console.error("Error response:", err.response?.data);
-      setError(err.response?.data?.error || "Error updating profile");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -108,43 +56,27 @@ const UserAccount = ({ onChangePassword }) => {
     }));
   };
 
-  const handleLogout = async () => {
-    try {
-      // Try to call logout endpoint (you may need to add this to your backend)
-      await apiClient.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout API error:", error);
-      // Continue with logout even if API call fails
-    } finally {
-      // Clear local storage and redirect
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("token");
-      window.location.href = "/";
-    }
+  const handleLogout = () => {
+    // Implement logout logic — e.g. call your logout API endpoint and remove session tokens from storage.
+    axios
+      .post("https://backend-docker-production-c584.up.railway.app/api/auth/logout", {}, { withCredentials: true })
+      .then(() => {
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("token");
+        window.location.href = "/";
+        console.log("Logout successful");
+      })
+      .catch((error) => {
+        console.error("Logout error:", error);
+      });
   };
 
   if (loading) {
-    return (
-      <section className="bg-[#FFF] rounded-[8px] shadow-[0_4px_12px_rgba(0,0,0,0.1)] p-[32px]">
-        <p className="text-center">Loading user data...</p>
-      </section>
-    );
+    return <p>Loading user data...</p>;
   }
 
   if (error) {
-    return (
-      <section className="bg-[#FFF] rounded-[8px] shadow-[0_4px_12px_rgba(0,0,0,0.1)] p-[32px]">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-[24px] py-[12px] bg-[#872472] text-[#FFF] rounded-[4px] font-semibold cursor-pointer"
-          >
-            Retry
-          </button>
-        </div>
-      </section>
-    );
+    return <p>{error}</p>;
   }
 
   return (
@@ -160,12 +92,6 @@ const UserAccount = ({ onChangePassword }) => {
           </button>
         )}
       </header>
-
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
 
       <div className="flex flex-col gap-[24px]">
         <FormField
@@ -191,33 +117,29 @@ const UserAccount = ({ onChangePassword }) => {
           value={userData.phone}
           type="tel"
           placeholder="Nhập số điện thoại"
-          isEditing={false} // Phone should not be editable
+          isEditing={false}
           onChange={handleFieldChange("phone")}
         />
 
         {isEditing && (
           <div className="flex justify-end gap-[16px] mt-[16px]">
             <button
-              onClick={() => {
-                setIsEditing(false);
-                setError(null);
-              }}
+              onClick={() => setIsEditing(false)}
               className="px-[24px] py-[12px] bg-[#F5F5F5] text-[#242108] rounded-[4px] cursor-pointer font-semibold"
             >
               Hủy
             </button>
             <button
               onClick={handleSave}
-              disabled={loading}
-              className="px-[24px] cursor-pointer py-[12px] bg-[#CCA508] text-[#FFF] rounded-[4px] font-semibold disabled:opacity-50"
+              className="px-[24px] cursor-pointer py-[12px] bg-[#CCA508] text-[#FFF] rounded-[4px] font-semibold"
             >
-              {loading ? "Đang lưu..." : "Lưu thay đổi"}
+              Lưu thay đổi
             </button>
           </div>
         )}
       </div>
 
-      <ActionButtons onChangePassword={onChangePassword} onLogout={handleLogout} />
+      <ActionButtons onChangePassword={onChangePassword} />
     </section>
   );
 };

@@ -4,7 +4,7 @@ import Header from "../layout/Header";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import NumerologyManagement from "./NumerologyManagement";
-import SplashScreen from "../../components/SplashScreen"
+import SplashScreen from "../../components/SplashScreen";
 
 function NumerologyDashboard() {
   const [activeTab, setActiveTab] = useState("users");

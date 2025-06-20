@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FormField from "./FormField";
@@ -354,13 +353,10 @@ const calculateBirthChartAccurate = ({ date, time, birthPlace, latitude, longitu
 const saveUserAstrologyResults = async (userInfo, chartData) => {
   try {
     console.log('Saving user astrology results to database...');
-    const today = new Date();
-    const todayFormatted = today.getFullYear() + '-' + 
-                          String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                          String(today.getDate()).padStart(2, '0');
+    
     const payload = {
       PhoneNumber: userInfo.phone || userInfo.phoneNumber || userInfo.PhoneNumber || null,
-      date: todayFormatted,
+      date: userInfo.birthDate,
       ascendant: chartData.ascendant.zodiacName,
       chiron: chartData.chiron.zodiacName,
       jupiter: chartData.jupiter.zodiacName,
@@ -485,41 +481,52 @@ const fetchPlanetInterpretation = async (planet, zodiacSign) => {
   }
 };
 
-const apiClient = axios.create({
-  baseURL: "https://backend-docker-production-c584.up.railway.app/api",
-  withCredentials: true,
-});
-
-// Add request interceptor to include token in headers if available
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Add response interceptor to handle auth errors
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("token");
-      window.location.href = "/";
-    }
-    return Promise.reject(error);
-  }
-);
-
-
 const AstrologyForm = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
+  
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setProfileLoading(true);
+        const response = await fetch("https://backend-docker-production-c584.up.railway.app/api/auth/profile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include'
+        });
 
+        if (response.ok) {
+          const profileData = await response.json();
+          setUserProfile(profileData);
+          setProfileError(null);
+          
+          // Auto-fill form data if available in profile
+          if (profileData.fullName) {
+            setFormData(prev => ({ ...prev, name: profileData.fullName }));
+          }
+          if (profileData.gender) {
+            setFormData(prev => ({ ...prev, gender: profileData.gender }));
+          }
+        } else {
+          const errorData = await response.json();
+          setProfileError(errorData.message || "Failed to fetch user profile");
+          console.error("Failed to fetch user profile:", response.statusText);
+        }
+      } catch (error) {
+        setProfileError("Unable to connect to profile service");
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -534,38 +541,6 @@ const AstrologyForm = () => {
     timezone: "GMT +7",
     birthplace: "",
   });
-
-  // Then inside the AstrologyForm component, replace the useEffect with:
-useEffect(() => {
-  const fetchUserProfile = async () => {
-    try {
-      setProfileLoading(true);
-      const response = await apiClient.get("/auth/profile");
-
-      const profileData = response.data;
-      setUserProfile(profileData);
-      setProfileError(null);
-      
-      // Auto-fill form data if available in profile
-      if (profileData.fullName || profileData.fullname) {
-        setFormData(prev => ({ 
-          ...prev, 
-          name: profileData.fullName || profileData.fullname 
-        }));
-      }
-      if (profileData.gender) {
-        setFormData(prev => ({ ...prev, gender: profileData.gender }));
-      }
-    } catch (error) {
-      setProfileError("Unable to connect to profile service");
-      console.error("Error fetching user profile:", error);
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  fetchUserProfile();
-}, []);
 
   const [isCalculating, setIsCalculating] = useState(false);
 
@@ -617,7 +592,12 @@ useEffect(() => {
       const interpretations = await fetchChartInterpretations(birthChartData.chartData);
 
       // Get phone number from user profile
-      const phoneNumber = userProfile?.phone || null;
+      const phoneNumber = userProfile?.phoneNumber || 
+                         userProfile?.phone || 
+                         userProfile?.mobile || 
+                         userProfile?.data?.phoneNumber ||
+                         userProfile?.data?.phone ||
+                         null;
 
       // Create user info object
       const userInfo = {
@@ -683,9 +663,9 @@ useEffect(() => {
     <section className="p-10 rounded bg-neutral-900 bg-opacity-50 max-w-[1200px] w-[100%]">
       {userProfile && !profileLoading && (
         <div className="bg-green-600 text-white p-3 rounded-md mb-4">
-          <p>✓ Đã kết nối với tài khoản: {userProfile.fullname || 'Người dùng'}</p>
-          {userProfile.phone ? (
-            <p className="text-sm opacity-90">Kết quả sẽ được lưu vào lịch sử tra cứu với số: {userProfile.phone}</p>
+          <p>✓ Đã kết nối với tài khoản: {userProfile.name || userProfile.fullname || 'Người dùng'}</p>
+          {userProfile.phoneNumber || userProfile.phone ? (
+            <p className="text-sm opacity-90">Kết quả sẽ được lưu vào lịch sử tra cứu với số: {userProfile.phoneNumber || userProfile.phone}</p>
           ) : (
             <p className="text-sm opacity-90">Không tìm thấy số điện thoại - kết quả sẽ không được lưu</p>
           )}

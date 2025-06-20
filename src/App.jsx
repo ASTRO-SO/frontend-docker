@@ -8,7 +8,6 @@ import SplashScreen from "./components/SplashScreen";
 import SignUp from "./components/SignUp/SignUp.jsx";
 import Login from "./components/Login/Login.jsx";
 import Introduction from "./components/Introduction/Introduction.jsx";
-import ContactPage from "./components/Contact/Contact.jsx";
 import NumerologyCalculator from "./components/Numerology/NumerologyCalculator.jsx";
 import AstrologyCalculator from "./components/Astrology/AstrologyCalculator.jsx";
 import AstroAdminDashboard from "./ADMIN/DashboardUser/AstroAdminDashboard.jsx";
@@ -29,7 +28,6 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/introduction" element={<Introduction />} />
-        <Route path="/contact" element={<ContactPage />} />
         <Route path="/numerology" element={<NumerologyCalculator />} />
         <Route path="/astrology" element={<AstrologyCalculator />} />
         <Route path="/admin" element={<AstroAdminDashboard />} />

@@ -19,6 +19,7 @@ const SignUp = () => {
 
   const [errors, setErrors] = useState({});
   const [serverMessage, setServerMessage] = useState("");
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -38,6 +39,12 @@ const SignUp = () => {
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
+    // Added email validation
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
     }
     if (!formData.termsAccepted) {
       newErrors.termsAccepted = "You must agree to the Terms of Service";
@@ -64,8 +71,12 @@ const SignUp = () => {
           formData,
           { withCredentials: true }
         );
-        // On successful signup, redirect to login page
-        navigate("/login");
+        // On successful signup, show popup
+        setShowSuccessPopup(true);
+        // Redirect to login page after 2 seconds
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       } catch (error) {
         console.error("Signup error:", error);
         if (error.response?.data?.error) {
@@ -76,6 +87,11 @@ const SignUp = () => {
         }
       }
     }
+  };
+
+  const handlePopupClose = () => {
+    setShowSuccessPopup(false);
+    navigate("/login");
   };
 
   return (
@@ -138,8 +154,9 @@ const SignUp = () => {
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
-            placeholder="Email (optional)"
+            placeholder="Email"
           />
+          {errors.email && <ErrorMessage message={errors.email} />}
     
           <div className="flex items-center gap-[8px] mb-8">
             <input
@@ -154,7 +171,6 @@ const SignUp = () => {
             <label htmlFor="terms" className="text-[16px]">
               I agree to the{" "}
               <Link 
-                to="/termofservice" 
                 className="text-white underline hover:text-blue-300"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -181,6 +197,43 @@ const SignUp = () => {
           </a>
         </footer>
       </div>
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#131114] border border-[#2D2C2E] rounded-[10px] p-8 max-w-md mx-4 text-center">
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg 
+                  className="w-8 h-8 text-white" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="2" 
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-white mb-2">
+                Account Created Successfully!
+              </h2>
+              <p className="text-[#999999] mb-6">
+                Welcome! Your account has been created. You will be redirected to the login page shortly.
+              </p>
+            </div>
+            <button
+              onClick={handlePopupClose}
+              className="bg-[#2D2C2E] text-white font-semibold py-3 px-6 rounded-full hover:bg-[#3D3C3E] transition-colors"
+            >
+              Continue to Login
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

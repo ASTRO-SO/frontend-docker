@@ -4,7 +4,7 @@ import Header from "../layout/Header";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import ReadingManagement from "./ReadingManagement";
-import SplashScreen from "../../components/SplashScreen"
+import SplashScreen from "../../components/SplashScreen";
 
 function ReadingDashboard() {
   const [activeTab, setActiveTab] = useState("users");

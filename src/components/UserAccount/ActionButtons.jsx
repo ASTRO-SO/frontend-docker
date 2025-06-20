@@ -7,7 +7,6 @@ const ActionButtons = ({ onChangePassword }) => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
-    
     window.location.href = "/";
   };
 
